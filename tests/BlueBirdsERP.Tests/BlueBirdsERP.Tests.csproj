@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\BlueBirdsERP.Domain\BlueBirdsERP.Domain.csproj" />
     <ProjectReference Include="..\..\src\BlueBirdsERP.Application\BlueBirdsERP.Application.csproj" />
+    <ProjectReference Include="..\..\src\BlueBirdsERP.Infrastructure\BlueBirdsERP.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

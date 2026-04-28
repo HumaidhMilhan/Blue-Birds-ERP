@@ -1,5 +1,6 @@
 using BlueBirdsERP.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BlueBirdsERP.Infrastructure.Persistence;
 
@@ -20,6 +21,8 @@ public sealed class PoultryProDbContext(DbContextOptions<PoultryProDbContext> op
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<OfflineSyncQueueItem> OfflineSyncQueueItems => Set<OfflineSyncQueueItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,13 +41,29 @@ public sealed class PoultryProDbContext(DbContextOptions<PoultryProDbContext> op
         modelBuilder.Entity<Notification>().HasKey(entity => entity.NotificationId);
         modelBuilder.Entity<NotificationTemplate>().HasKey(entity => entity.TemplateId);
         modelBuilder.Entity<AuditLog>().HasKey(entity => entity.LogId);
+        modelBuilder.Entity<SystemSetting>().HasKey(entity => entity.SettingKey);
+        modelBuilder.Entity<OfflineSyncQueueItem>().HasKey(entity => entity.QueueItemId);
 
         modelBuilder.Entity<User>().HasIndex(entity => entity.Username).IsUnique();
         modelBuilder.Entity<BusinessAccount>().HasIndex(entity => entity.CustomerId).IsUnique();
         modelBuilder.Entity<Invoice>().HasIndex(entity => entity.InvoiceNumber).IsUnique();
         modelBuilder.Entity<NotificationTemplate>().HasIndex(entity => entity.NotificationType).IsUnique();
+        modelBuilder.Entity<OfflineSyncQueueItem>().HasIndex(entity => entity.Status);
+
+        modelBuilder.Entity<Invoice>()
+            .HasMany(entity => entity.Items)
+            .WithOne()
+            .HasForeignKey(entity => entity.InvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SalesReturn>()
+            .HasMany(entity => entity.Items)
+            .WithOne()
+            .HasForeignKey(entity => entity.ReturnId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         ConfigureMoney(modelBuilder);
+        ConfigureDateTimeOffsets(modelBuilder);
     }
 
     private static void ConfigureMoney(ModelBuilder modelBuilder)
@@ -100,5 +119,30 @@ public sealed class PoultryProDbContext(DbContextOptions<PoultryProDbContext> op
             entity.Property(item => item.SoldUnitValue).HasPrecision(10, 2);
             entity.Property(item => item.ReturnValue).HasPrecision(12, 2);
         });
+    }
+
+    private static void ConfigureDateTimeOffsets(ModelBuilder modelBuilder)
+    {
+        var dateTimeOffsetConverter = new ValueConverter<DateTimeOffset, long>(
+            value => value.ToUnixTimeMilliseconds(),
+            value => DateTimeOffset.FromUnixTimeMilliseconds(value));
+        var nullableDateTimeOffsetConverter = new ValueConverter<DateTimeOffset?, long?>(
+            value => value.HasValue ? value.Value.ToUnixTimeMilliseconds() : null,
+            value => value.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(value.Value) : null);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset))
+                {
+                    property.SetValueConverter(dateTimeOffsetConverter);
+                }
+                else if (property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(nullableDateTimeOffsetConverter);
+                }
+            }
+        }
     }
 }

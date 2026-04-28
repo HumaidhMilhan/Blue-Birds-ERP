@@ -11,6 +11,8 @@ public sealed class User
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastLogin { get; set; }
+    public DateTimeOffset? DeactivatedAt { get; set; }
+    public DateTimeOffset? PasswordChangedAt { get; set; }
 }
 
 public sealed class Customer
@@ -204,4 +206,29 @@ public sealed class AuditLog
     public string? BeforeValueJson { get; set; }
     public string? AfterValueJson { get; set; }
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
+}
+
+public sealed class SystemSetting
+{
+    public string SettingKey { get; set; } = string.Empty;
+    public string SettingValue { get; set; } = string.Empty;
+    public SystemSettingValueType ValueType { get; set; } = SystemSettingValueType.String;
+    public bool IsSecret { get; set; }
+    public Guid UpdatedBy { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+public sealed class OfflineSyncQueueItem
+{
+    public Guid QueueItemId { get; set; } = Guid.NewGuid();
+    public string EntityName { get; set; } = string.Empty;
+    public Guid EntityId { get; set; }
+    public string Operation { get; set; } = string.Empty;
+    public string PayloadJson { get; set; } = string.Empty;
+    public OfflineSyncStatus Status { get; set; } = OfflineSyncStatus.Pending;
+    public int RetryCount { get; set; }
+    public string? LastError { get; set; }
+    public DateTimeOffset QueuedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? LastAttemptedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
 }

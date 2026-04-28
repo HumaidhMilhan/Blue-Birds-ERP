@@ -1,5 +1,6 @@
 using BlueBirdsERP.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BlueBirdsERP.Infrastructure.Persistence;
 
@@ -11,6 +12,7 @@ public sealed class LocalPosDbContext(DbContextOptions<LocalPosDbContext> option
     public DbSet<WastageRecord> WastageRecords => Set<WastageRecord>();
     public DbSet<SalesReturn> SalesReturns => Set<SalesReturn>();
     public DbSet<SalesReturnItem> SalesReturnItems => Set<SalesReturnItem>();
+    public DbSet<OfflineSyncQueueItem> OfflineSyncQueueItems => Set<OfflineSyncQueueItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,8 +22,22 @@ public sealed class LocalPosDbContext(DbContextOptions<LocalPosDbContext> option
         modelBuilder.Entity<WastageRecord>().HasKey(entity => entity.WastageId);
         modelBuilder.Entity<SalesReturn>().HasKey(entity => entity.ReturnId);
         modelBuilder.Entity<SalesReturnItem>().HasKey(entity => entity.ReturnItemId);
+        modelBuilder.Entity<OfflineSyncQueueItem>().HasKey(entity => entity.QueueItemId);
 
         modelBuilder.Entity<Invoice>().HasIndex(entity => entity.InvoiceNumber).IsUnique();
+        modelBuilder.Entity<OfflineSyncQueueItem>().HasIndex(entity => entity.Status);
+
+        modelBuilder.Entity<Invoice>()
+            .HasMany(entity => entity.Items)
+            .WithOne()
+            .HasForeignKey(entity => entity.InvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SalesReturn>()
+            .HasMany(entity => entity.Items)
+            .WithOne()
+            .HasForeignKey(entity => entity.ReturnId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Invoice>(entity =>
         {
@@ -55,5 +71,32 @@ public sealed class LocalPosDbContext(DbContextOptions<LocalPosDbContext> option
             entity.Property(item => item.SoldUnitValue).HasPrecision(10, 2);
             entity.Property(item => item.ReturnValue).HasPrecision(12, 2);
         });
+
+        ConfigureDateTimeOffsets(modelBuilder);
+    }
+
+    private static void ConfigureDateTimeOffsets(ModelBuilder modelBuilder)
+    {
+        var dateTimeOffsetConverter = new ValueConverter<DateTimeOffset, long>(
+            value => value.ToUnixTimeMilliseconds(),
+            value => DateTimeOffset.FromUnixTimeMilliseconds(value));
+        var nullableDateTimeOffsetConverter = new ValueConverter<DateTimeOffset?, long?>(
+            value => value.HasValue ? value.Value.ToUnixTimeMilliseconds() : null,
+            value => value.HasValue ? DateTimeOffset.FromUnixTimeMilliseconds(value.Value) : null);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset))
+                {
+                    property.SetValueConverter(dateTimeOffsetConverter);
+                }
+                else if (property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(nullableDateTimeOffsetConverter);
+                }
+            }
+        }
     }
 }

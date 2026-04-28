@@ -9,9 +9,9 @@ The scaffold follows the SRS in `docs/PoultryPro_SRS_v1.0.pdf` and is organized 
 - .NET 8
 - WPF desktop UI
 - MVVM-style presentation layer
-- PostgreSQL as the default central database
-- SQLite for local offline POS storage
-- EF Core persistence placeholders
+- SQLite as the primary offline-first MVP database
+- PostgreSQL as an optional online sync target
+- EF Core persistence and queued online-process storage
 
 ## Solution Layout
 
@@ -35,4 +35,4 @@ dotnet run --project src/BlueBirdsERP.Desktop/BlueBirdsERP.Desktop.csproj
 
 ## Current Status
 
-Implemented slices now cover POS billing/returns, customer credit accounts, manual batch inventory, and queued WhatsApp notification rules. Infrastructure adapters are still placeholders where credentials or deployment-specific services are required.
+Implemented slices now cover POS billing/returns, customer credit accounts, manual batch inventory, queued WhatsApp notification rules, RBAC/authentication, SQLite-backed persistence, Admin settings, recovery access, receipt PDF generation, offline queueing, database management, and operational reporting. UI/UX screens are still pending.

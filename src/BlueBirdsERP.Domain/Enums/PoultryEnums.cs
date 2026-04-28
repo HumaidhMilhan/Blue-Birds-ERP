@@ -6,6 +6,23 @@ public enum UserRole
     Cashier
 }
 
+public enum RbacPermission
+{
+    PosBilling,
+    PaymentRecording,
+    SalesReturns,
+    CustomerReadOnlyLookup,
+    InventoryManagement,
+    BatchManagement,
+    CustomerAccountManagement,
+    CreditManagement,
+    WhatsAppConfiguration,
+    Reporting,
+    UserManagement,
+    SystemConfiguration,
+    AuditLogRead
+}
+
 public enum CustomerType
 {
     Retail,
@@ -91,5 +108,23 @@ public enum NotificationStatus
 {
     Pending,
     Sent,
+    Failed
+}
+
+public enum SystemSettingValueType
+{
+    String,
+    Integer,
+    Decimal,
+    Boolean,
+    Time,
+    EncryptedString
+}
+
+public enum OfflineSyncStatus
+{
+    Pending,
+    Processing,
+    Completed,
     Failed
 }

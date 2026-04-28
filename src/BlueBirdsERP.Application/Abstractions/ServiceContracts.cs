@@ -14,6 +14,39 @@ public interface ISessionService
     Task BeginSessionAsync(AuthenticatedUser user, CancellationToken cancellationToken = default);
     Task TouchAsync(CancellationToken cancellationToken = default);
     Task EndSessionAsync(CancellationToken cancellationToken = default);
+    Task<bool> IsSessionActiveAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task InvalidateUserSessionsAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+
+public interface IRbacAuthorizationService
+{
+    bool HasPermission(UserRole role, RbacPermission permission);
+    IReadOnlySet<RbacPermission> GetPermissions(UserRole role);
+}
+
+public interface IUserManagementService
+{
+    Task<CashierAccountResult> CreateCashierAsync(CreateCashierRequest request, CancellationToken cancellationToken = default);
+    Task<CashierAccountResult> DeactivateCashierAsync(DeactivateCashierRequest request, CancellationToken cancellationToken = default);
+    Task<PasswordResetResult> ResetCashierPasswordAsync(ResetCashierPasswordRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface ILoginSessionFacade
+{
+    AuthenticatedUser? CurrentUser { get; }
+    IReadOnlySet<RbacPermission> CurrentPermissions { get; }
+    Task<LoginResult> SignInAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task LogoutAsync(CancellationToken cancellationToken = default);
+}
+
+public interface IRecoveryAccessService
+{
+    Task<RecoveryAccessResult> GenerateTemporaryAdminPasswordAsync(RecoveryAccessRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IApplicationBootstrapService
+{
+    Task<BootstrapResult> EnsureDevelopmentBootstrapAsync(CancellationToken cancellationToken = default);
 }
 
 public interface IPOSCheckoutService
@@ -94,10 +127,91 @@ public interface IReceiptPrinter
     Task PrintInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken = default);
 }
 
+public interface ISystemSettingsService
+{
+    Task<IReadOnlyList<SystemSettingResult>> GetSettingsAsync(SystemSettingsQuery query, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SystemSettingResult>> UpdateSettingsAsync(UpdateSystemSettingsRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IDatabaseManagementService
+{
+    Task<DatabaseOperationResult> TestSqliteConnectionAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
+    Task<DatabaseOperationResult> TestPostgreSqlConnectionAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
+    Task<DatabaseOperationResult> ApplyMigrationsAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
+    Task<DatabaseBackupResult> BackupSqliteDatabaseAsync(DatabaseBackupRequest request, CancellationToken cancellationToken = default);
+    Task<OfflineSyncQueueStatusResult> GetSyncQueueStatusAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IReceiptPdfService
+{
+    Task<ReceiptPdfResult> GenerateInvoiceReceiptPdfAsync(ReceiptPdfRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IReportingService
+{
+    Task<OperationalReportResult> GenerateOperationalReportAsync(OperationalReportRequest request, CancellationToken cancellationToken = default);
+}
+
+public interface IAuditLogReader
+{
+    Task<IReadOnlyList<AuditLogEntryResult>> QueryAsync(AuditLogQuery request, CancellationToken cancellationToken = default);
+}
+
 public sealed record AuthenticatedUser(
     Guid UserId,
     string Username,
     UserRole Role);
+
+public sealed record CreateCashierRequest(
+    string Username,
+    Guid AdminUserId,
+    UserRole AdminRole);
+
+public sealed record DeactivateCashierRequest(
+    Guid CashierUserId,
+    Guid AdminUserId,
+    UserRole AdminRole);
+
+public sealed record ResetCashierPasswordRequest(
+    Guid CashierUserId,
+    Guid AdminUserId,
+    UserRole AdminRole);
+
+public sealed record CashierAccountResult(
+    Guid UserId,
+    string Username,
+    bool IsActive,
+    string? TemporaryPassword = null);
+
+public sealed record PasswordResetResult(
+    Guid UserId,
+    string Username,
+    string TemporaryPassword,
+    DateTimeOffset PasswordChangedAt);
+
+public sealed record LoginRequest(
+    string Username,
+    string Password);
+
+public sealed record LoginResult(
+    bool IsAuthenticated,
+    AuthenticatedUser? User,
+    IReadOnlySet<RbacPermission> Permissions,
+    string? ErrorMessage);
+
+public sealed record RecoveryAccessRequest(
+    string RecoveryKey,
+    string? TargetAdminUsername = null);
+
+public sealed record RecoveryAccessResult(
+    Guid AdminUserId,
+    string Username,
+    string TemporaryPassword,
+    DateTimeOffset PasswordChangedAt);
+
+public sealed record BootstrapResult(
+    bool Created,
+    string Username);
 
 public sealed record CheckoutRequest(
     SaleChannel SaleChannel,
@@ -464,6 +578,151 @@ public sealed record OwnerDailySummaryResult(
     decimal WastageValue,
     Guid? NotificationId,
     string MessageBody);
+
+public sealed record SystemSettingsQuery(
+    Guid RequestedBy,
+    UserRole Role,
+    bool RevealSecrets = false);
+
+public sealed record UpdateSystemSettingsRequest(
+    Guid UpdatedBy,
+    UserRole Role,
+    IReadOnlyCollection<SystemSettingUpdate> Settings);
+
+public sealed record SystemSettingUpdate(
+    string Key,
+    string Value,
+    SystemSettingValueType ValueType,
+    bool IsSecret = false);
+
+public sealed record SystemSettingResult(
+    string Key,
+    string Value,
+    SystemSettingValueType ValueType,
+    bool IsSecret,
+    DateTimeOffset UpdatedAt);
+
+public sealed record AdminOperationRequest(
+    Guid UserId,
+    UserRole Role);
+
+public sealed record DatabaseBackupRequest(
+    Guid UserId,
+    UserRole Role,
+    string? DestinationDirectory = null);
+
+public sealed record DatabaseOperationResult(
+    bool Succeeded,
+    string Message);
+
+public sealed record DatabaseBackupResult(
+    bool Succeeded,
+    string BackupPath,
+    string Message);
+
+public sealed record OfflineSyncQueueStatusResult(
+    int Pending,
+    int Processing,
+    int Completed,
+    int Failed);
+
+public sealed record ReceiptPdfRequest(
+    Guid InvoiceId,
+    Guid RequestedBy,
+    UserRole Role);
+
+public sealed record ReceiptPdfResult(
+    Guid InvoiceId,
+    string InvoiceNumber,
+    string FileName,
+    byte[] PdfBytes);
+
+public sealed record OperationalReportRequest(
+    DateOnly FromDate,
+    DateOnly ToDate,
+    Guid RequestedBy,
+    UserRole Role,
+    Guid? ProductId = null,
+    Guid? BatchId = null,
+    Guid? CustomerId = null,
+    Guid? CashierId = null,
+    SaleChannel? SaleChannel = null,
+    PaymentMethod? PaymentMethod = null);
+
+public sealed record OperationalReportResult(
+    DateOnly FromDate,
+    DateOnly ToDate,
+    SalesReportSummary Sales,
+    ProfitReportSummary Profit,
+    WastageReportSummary Wastage,
+    IReadOnlyList<StockOnHandReportLine> StockOnHand,
+    IReadOnlyList<BatchMovementReportLine> BatchMovements,
+    DebtorAgingReport DebtorAging,
+    PaymentCollectionReportSummary Payments,
+    SalesReturnReportSummary SalesReturns,
+    IReadOnlyList<AuditLogEntryResult> AuditActivity);
+
+public sealed record SalesReportSummary(
+    decimal TotalSales,
+    decimal RetailSales,
+    decimal WholesaleSales,
+    int InvoiceCount);
+
+public sealed record ProfitReportSummary(
+    decimal GrossSales,
+    decimal CostOfGoodsSold,
+    decimal GrossProfit);
+
+public sealed record WastageReportSummary(
+    decimal TotalWastageValue,
+    decimal CustomerReturnWastageValue,
+    int RecordCount);
+
+public sealed record StockOnHandReportLine(
+    Guid ProductId,
+    string ProductName,
+    string UnitOfMeasure,
+    decimal RemainingQuantity,
+    decimal ReorderLevel);
+
+public sealed record BatchMovementReportLine(
+    Guid BatchId,
+    Guid ProductId,
+    string ProductName,
+    decimal PurchasedQuantity,
+    decimal SoldQuantity,
+    decimal WastedQuantity,
+    decimal RemainingQuantity);
+
+public sealed record PaymentCollectionReportSummary(
+    decimal TotalCash,
+    decimal TotalCard,
+    decimal TotalRefunds,
+    int PaymentCount);
+
+public sealed record SalesReturnReportSummary(
+    decimal TotalReturnValue,
+    decimal TotalRefundAmount,
+    int ReturnCount);
+
+public sealed record AuditLogQuery(
+    Guid RequestedBy,
+    UserRole Role,
+    DateOnly? FromDate = null,
+    DateOnly? ToDate = null,
+    Guid? UserId = null,
+    string? Module = null,
+    string? Action = null);
+
+public sealed record AuditLogEntryResult(
+    Guid LogId,
+    Guid UserId,
+    UserRole Role,
+    string Action,
+    string Module,
+    string TargetEntity,
+    Guid TargetId,
+    DateTimeOffset Timestamp);
 
 public sealed record AuditEntry(
     Guid UserId,

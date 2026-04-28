@@ -8,7 +8,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 {
     public string ProductName { get; } = "PoultryPro ERP";
     public string CompanyName { get; } = "Blue Birds Poultry";
-    public string CurrentSession { get; } = "Authentication module pending";
+    public string CurrentSession { get; } = "RBAC and authentication scaffolded";
     public string DashboardSubtitle { get; } = "Initial shell for POS, inventory, credit, reporting, notifications, and administration.";
     public PosWorkspaceViewModel PosWorkspace { get; } = new();
 
@@ -19,7 +19,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         new("Credit", "Debtors and payments", "Business accounts, soft credit-limit alerts, aging, payment history, and credit notes.", "Scaffolded"),
         new("Purchasing", "Manual batch purchases", "Admin records purchased batches directly with quantity, cost, purchase date, and expiry details.", "Scaffolded"),
         new("WhatsApp", "Queued notifications", "Payment reminders, overdue alerts, retry policy, templates, logs, and owner profit/wastage summary.", "Scaffolded"),
-        new("Admin", "Security and configuration", "RBAC, session timeout, user management, encrypted settings, reports, and audit log.", "Scaffolded")
+        new("Admin", "Security and configuration", "RBAC permission matrix, cashier management, generated password reset, encrypted settings, reports, and audit log.", "Scaffolded")
     ];
 
     public ObservableCollection<string> Guardrails { get; } =
