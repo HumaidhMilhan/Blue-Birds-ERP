@@ -1,0 +1,84 @@
+namespace BlueBirdsERP.Domain.Enums;
+
+public enum UserRole
+{
+    Admin,
+    Cashier
+}
+
+public enum CustomerType
+{
+    Retail,
+    Wholesale
+}
+
+public enum AccountType
+{
+    None,
+    BusinessAccount,
+    OneTimeCreditor
+}
+
+public enum SaleChannel
+{
+    Retail,
+    Wholesale
+}
+
+public enum PaymentMethod
+{
+    Cash,
+    Card,
+    Credit,
+    Mixed
+}
+
+public enum PaymentStatus
+{
+    Paid,
+    Partial,
+    Pending,
+    Void
+}
+
+public enum PricingType
+{
+    WeightBased,
+    UnitBased
+}
+
+public enum BatchStatus
+{
+    Active,
+    Exhausted,
+    Expired,
+    Recalled
+}
+
+public enum WastageType
+{
+    Expiry,
+    DamagedPackaging,
+    CustomerReturn,
+    Other
+}
+
+public enum NotificationType
+{
+    PaymentReminder,
+    OverdueAlert,
+    OwnerDailyReport
+}
+
+public enum NotificationChannel
+{
+    WhatsApp
+}
+
+public enum NotificationStatus
+{
+    Pending,
+    Sent,
+    Failed
+}
+

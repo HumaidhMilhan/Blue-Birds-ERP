@@ -1,0 +1,192 @@
+<Window x:Class="BlueBirdsERP.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{Binding ProductName}"
+        Height="760"
+        MinHeight="640"
+        Width="1180"
+        MinWidth="980"
+        Background="{StaticResource AppBackgroundBrush}">
+    <Grid Margin="18">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260" />
+            <ColumnDefinition Width="18" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Background="{StaticResource PrimaryBrush}"
+                CornerRadius="8"
+                Padding="18">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top">
+                    <TextBlock Text="{Binding ProductName}"
+                               Foreground="White"
+                               FontSize="24"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding CompanyName}"
+                               Foreground="#DDEBE7"
+                               Margin="0,4,0,18"
+                               FontSize="13" />
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom"
+                            Margin="0,18,0,0">
+                    <TextBlock Text="Session"
+                               Foreground="#C2D7D2"
+                               FontSize="12" />
+                    <TextBlock Text="{Binding CurrentSession}"
+                               Foreground="White"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding Modules}"
+                         SelectedIndex="0"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Foreground="White">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10"
+                                    Margin="0,0,0,8"
+                                    Background="#2D625A"
+                                    CornerRadius="6">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="15"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Area}"
+                                               Foreground="#DDEBE7"
+                                               FontSize="12"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="18" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="8"
+                    Padding="24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBlock Text="Operations Dashboard"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="#1D2624" />
+                        <TextBlock Text="{Binding DashboardSubtitle}"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right">
+                        <Button Content="New Retail Sale"
+                                Margin="0,0,8,0" />
+                        <Button Content="New Wholesale Sale"
+                                Background="{StaticResource AccentBrush}"
+                                Foreground="White" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Background="{StaticResource SurfaceBrush}"
+                        CornerRadius="8"
+                        Padding="22">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="Module Readiness"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,14" />
+
+                        <ItemsControl ItemsSource="{Binding Modules}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#E3E7E0"
+                                            BorderThickness="0,0,0,1"
+                                            Padding="0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="130" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#1D2624" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,4,12,0" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding Status}"
+                                                       Foreground="{StaticResource AccentBrush}"
+                                                       FontWeight="SemiBold"
+                                                       HorizontalAlignment="Right"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Column="2"
+                        Background="{StaticResource SurfaceBrush}"
+                        CornerRadius="8"
+                        Padding="22">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="SRS Guardrails"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Margin="0,0,0,14" />
+
+                        <ItemsControl ItemsSource="{Binding Guardrails}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               TextWrapping="Wrap"
+                                               Foreground="#33413E"
+                                               Margin="0,0,0,12" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
+
