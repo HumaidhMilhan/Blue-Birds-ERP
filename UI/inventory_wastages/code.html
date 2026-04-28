@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BlueBirds - Inventory &amp; Wastages</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "inverse-on-surface": "#f2f1ee",
+                "primary-fixed-dim": "#ffb693",
+                "on-primary": "#ffffff",
+                "primary": "#9c3f00",
+                "error": "#ba1a1a",
+                "tertiary": "#914809",
+                "on-secondary-fixed-variant": "#5e4100",
+                "on-primary-fixed-variant": "#7a3000",
+                "on-tertiary": "#ffffff",
+                "tertiary-container": "#b05f22",
+                "inverse-primary": "#ffb693",
+                "outline-variant": "#e0c0b2",
+                "secondary-container": "#ffb702",
+                "surface-variant": "#e3e2e0",
+                "tertiary-fixed": "#ffdbc7",
+                "surface-container-low": "#f4f3f1",
+                "surface-dim": "#dbdad7",
+                "on-secondary": "#ffffff",
+                "background": "#faf9f6",
+                "on-secondary-container": "#6b4b00",
+                "surface-container-highest": "#e3e2e0",
+                "error-container": "#ffdad6",
+                "secondary": "#7d5800",
+                "outline": "#8c7166",
+                "on-error-container": "#93000a",
+                "on-surface-variant": "#584238",
+                "on-tertiary-container": "#fffbff",
+                "on-tertiary-fixed-variant": "#733600",
+                "on-primary-fixed": "#351000",
+                "on-secondary-fixed": "#271900",
+                "on-tertiary-fixed": "#311300",
+                "on-error": "#ffffff",
+                "secondary-fixed-dim": "#ffba27",
+                "inverse-surface": "#2f312f",
+                "surface": "#faf9f6",
+                "surface-container-lowest": "#ffffff",
+                "primary-container": "#c45100",
+                "tertiary-fixed-dim": "#ffb688",
+                "surface-container-high": "#e9e8e5",
+                "secondary-fixed": "#ffdea9",
+                "surface-bright": "#faf9f6",
+                "on-primary-container": "#fffbff",
+                "surface-container": "#efeeeb",
+                "surface-tint": "#a04100",
+                "on-surface": "#1a1c1a",
+                "primary-fixed": "#ffdbcc",
+                "on-background": "#1a1c1a"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "md": "24px",
+                "lg": "40px",
+                "base": "8px",
+                "margin": "24px",
+                "xl": "64px",
+                "gutter": "16px",
+                "sm": "12px",
+                "xs": "4px"
+        },
+        "fontFamily": {
+                "headline-lg": ["Work Sans"],
+                "headline-sm": ["Work Sans"],
+                "body-sm": ["Work Sans"],
+                "body-lg": ["Work Sans"],
+                "body-md": ["Work Sans"],
+                "label-sm": ["Work Sans"],
+                "headline-md": ["Work Sans"],
+                "label-md": ["Work Sans"]
+        },
+        "fontSize": {
+                "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "label-sm": ["11px", {"lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "label-md": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+</style>
+</head>
+<body class="bg-background font-body-md text-on-background antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-stone-50 dark:bg-stone-950 border-stone-200 dark:border-stone-800 shadow-none flex flex-col w-64 h-screen fixed left-0 top-0 z-40 py-4 border-r rounded-none">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-sm">egg</span>
+</div>
+<div>
+<h1 class="text-lg font-bold text-orange-600 font-headline-sm">BlueBirds</h1>
+<p class="font-['Work_Sans'] text-sm text-stone-500 font-body-sm">Poultry Shop ERP</p>
+</div>
+</div>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-3 rounded-DEFAULT hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add</span>
+        New Sale
+      </button>
+</div>
+<div class="flex-1 px-3 space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:text-stone-900 dark:hover:text-stone-100 transition-all font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-sm text-body-sm">Dashboard</span>
+</a>
+<!-- POS -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:text-stone-900 dark:hover:text-stone-100 transition-all font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined">point_of_sale</span>
+<span class="font-body-sm text-body-sm">POS</span>
+</a>
+<!-- Inventory (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 font-semibold border-r-4 border-orange-600 translate-x-1 transition-transform font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-body-sm text-body-sm font-semibold">Inventory</span>
+</a>
+<!-- Sales -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:text-stone-900 dark:hover:text-stone-100 transition-all font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-body-sm text-body-sm">Sales</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:text-stone-900 dark:hover:text-stone-100 transition-all font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-sm text-body-sm">Settings</span>
+</a>
+</div>
+<div class="px-3 mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900 hover:text-stone-900 dark:hover:text-stone-100 transition-all font-['Work_Sans'] text-sm" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-sm text-body-sm">Help Center</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-stone-50 dark:bg-stone-950 border-stone-200 dark:border-stone-800 shadow-none border-b flex justify-between items-center h-16 px-6 w-full shrink-0">
+<div class="flex items-center gap-4 flex-1">
+<!-- Search Bar on Left for balanced layout since Title is on Nav -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+<input class="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-DEFAULT text-sm font-body-sm focus:outline-none focus:border-orange-600 transition-colors" placeholder="Search inventory..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">schedule</span>
+</button>
+<div class="h-6 w-px bg-stone-200 mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer hover:opacity-80 duration-150 transition-opacity">
+<div class="flex flex-col items-end">
+<span class="font-['Work_Sans'] font-medium text-stone-900 dark:text-stone-100 text-sm font-body-sm">Admin User</span>
+<span class="text-xs text-stone-500 font-label-sm">Manager</span>
+</div>
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border border-stone-200" data-alt="Close up portrait of a male manager with short dark hair wearing a neutral shirt in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGPa20SH6pcgkSbRWMUdEfvR2042QtKIxkjBhQeT_Lq_6UHtViK1skeSEYEbBI6n6TFmk5hcbp35WXBacD5guttnFbkA9RIX4WPVx-h_mWGkmrQNIzeBBzfYzqizFP3gt2o-JdikWnaBqNTtRl76CNYn2C-Ik4zM8RKfK84Y8WjQDa94dJlwmBSzkxgGtWo9uqOf3Hp2v6MEXFqLn8VOH4iEBY2M7xs9w_Q7IzwebPDvYCbRFIzG1tkOKghxKNSLBVjnWDgPCmX_c"/>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto p-margin bg-background">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-margin">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Inventory &amp; Wastages</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage stock levels, reorder points, and record spoilage.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 border border-outline-variant rounded-DEFAULT text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">remove_shopping_cart</span>
+            Record Wastage
+          </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-DEFAULT font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add_box</span>
+            Receive Stock
+          </button>
+</div>
+</div>
+<!-- Key Metrics Bento Grid -->
+<div class="grid grid-cols-12 gap-gutter mb-margin">
+<div class="col-span-4 p-4 border border-outline-variant bg-surface rounded-DEFAULT">
+<div class="flex justify-between items-start mb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Live Birds (Broilers)</span>
+<span class="material-symbols-outlined text-primary">cruelty_free</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-primary">1,240</div>
+<div class="mt-2 flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+            Adequate Stock
+          </div>
+</div>
+<div class="col-span-4 p-4 border border-outline-variant bg-surface rounded-DEFAULT">
+<div class="flex justify-between items-start mb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Dressed Chicken (kg)</span>
+<span class="material-symbols-outlined text-tertiary">set_meal</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">350</div>
+<div class="mt-2 flex items-center gap-1 font-label-sm text-label-sm text-error">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+            Below Reorder Point
+          </div>
+</div>
+<div class="col-span-4 p-4 border border-outline-variant bg-surface-container-low rounded-DEFAULT">
+<div class="flex justify-between items-start mb-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Today's Wastage</span>
+<span class="material-symbols-outlined text-on-surface-variant">delete_sweep</span>
+</div>
+<div class="font-headline-lg text-headline-lg text-on-surface">4.5<span class="font-headline-sm text-headline-sm text-on-surface-variant ml-1">kg</span></div>
+<div class="mt-2 flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+            Recorded across 3 items
+          </div>
+</div>
+</div>
+<!-- Split Layout for Tables -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Inventory Main Table (8 cols) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-2">Current Stock Levels</h3>
+<div class="border border-outline-variant rounded-DEFAULT bg-surface overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b-2 border-outline-variant bg-surface-container">
+<th class="p-3 font-label-md text-label-md text-on-surface-variant">Item Description</th>
+<th class="p-3 font-label-md text-label-md text-on-surface-variant">Category</th>
+<th class="p-3 font-label-md text-label-md text-on-surface-variant text-right">In Stock</th>
+<th class="p-3 font-label-md text-label-md text-on-surface-variant text-right">Reorder Pt.</th>
+<th class="p-3 font-label-md text-label-md text-on-surface-variant text-center">Status</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="border-b border-outline-variant bg-surface-container-lowest">
+<td class="p-3">Live Broilers (Standard)</td>
+<td class="p-3 text-on-surface-variant">Live Stock</td>
+<td class="p-3 text-right font-medium">1,240 <span class="text-xs text-on-surface-variant font-normal">birds</span></td>
+<td class="p-3 text-right text-on-surface-variant">500</td>
+<td class="p-3 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">In Stock</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-lowest">
+<td class="p-3">Dressed Whole Chicken</td>
+<td class="p-3 text-on-surface-variant">Processed</td>
+<td class="p-3 text-right font-medium">85 <span class="text-xs text-on-surface-variant font-normal">kg</span></td>
+<td class="p-3 text-right text-on-surface-variant">100</td>
+<td class="p-3 text-center">
+<span class="inline-block px-2 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm">Low Stock</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-lowest">
+<td class="p-3">Chicken Breast (Boneless)</td>
+<td class="p-3 text-on-surface-variant">Processed</td>
+<td class="p-3 text-right font-medium">42 <span class="text-xs text-on-surface-variant font-normal">kg</span></td>
+<td class="p-3 text-right text-on-surface-variant">30</td>
+<td class="p-3 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">In Stock</span>
+</td>
+</tr>
+<tr class="border-b border-outline-variant bg-surface-container-lowest">
+<td class="p-3">Poultry Feed (Grower)</td>
+<td class="p-3 text-on-surface-variant">Supplies</td>
+<td class="p-3 text-right font-medium">850 <span class="text-xs text-on-surface-variant font-normal">kg</span></td>
+<td class="p-3 text-right text-on-surface-variant">500</td>
+<td class="p-3 text-center">
+<span class="inline-block px-2 py-1 rounded bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">In Stock</span>
+</td>
+</tr>
+<tr class="bg-surface-container-lowest">
+<td class="p-3">Egg Trays (Empty)</td>
+<td class="p-3 text-on-surface-variant">Packaging</td>
+<td class="p-3 text-right font-medium">12 <span class="text-xs text-on-surface-variant font-normal">units</span></td>
+<td class="p-3 text-right text-on-surface-variant">50</td>
+<td class="p-3 text-center">
+<span class="inline-block px-2 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm">Critical</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Wastages Log (4 cols) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface border-b border-outline-variant pb-2">Recent Wastages</h3>
+<div class="border border-outline-variant rounded-DEFAULT bg-surface flex flex-col divide-y divide-outline-variant">
+<div class="p-4 flex gap-3 items-start">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">ac_unit</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<span class="font-body-md text-body-md font-medium text-on-surface">Dressed Whole Chicken</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">10:45 AM</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Freezer temperature drop. Spoilage.</div>
+<div class="mt-2 font-label-sm text-label-sm text-error bg-error-container inline-block px-2 py-1 rounded">
+                  -2.5 kg
+                </div>
+</div>
+</div>
+<div class="p-4 flex gap-3 items-start">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">pest_control</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<span class="font-body-md text-body-md font-medium text-on-surface">Poultry Feed (Grower)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Yesterday</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Damaged sack in warehouse.</div>
+<div class="mt-2 font-label-sm text-label-sm text-error bg-error-container inline-block px-2 py-1 rounded">
+                  -5.0 kg
+                </div>
+</div>
+</div>
+<div class="p-4 flex gap-3 items-start">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">egg_alt</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<span class="font-body-md text-body-md font-medium text-on-surface">Large Eggs</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Oct 12</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Broken during transit.</div>
+<div class="mt-2 font-label-sm text-label-sm text-error bg-error-container inline-block px-2 py-1 rounded">
+                  -12 units
+                </div>
+</div>
+</div>
+<div class="p-3 bg-surface-container-lowest text-center">
+<button class="font-label-md text-label-md text-primary hover:text-primary-container transition-colors">
+                View All Wastages Log
+              </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
