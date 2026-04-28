@@ -3,21 +3,158 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#F6F7F2" />
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#214E48" />
-        <SolidColorBrush x:Key="AccentBrush" Color="#D18B47" />
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#5E6864" />
+        <Color x:Key="ColorBackground">#FAF9F6</Color>
+        <Color x:Key="ColorSurface">#FAF9F6</Color>
+        <Color x:Key="ColorSurfaceLowest">#FFFFFF</Color>
+        <Color x:Key="ColorSurfaceLow">#F4F3F1</Color>
+        <Color x:Key="ColorSurfaceContainer">#EFEEEB</Color>
+        <Color x:Key="ColorSurfaceHigh">#E9E8E5</Color>
+        <Color x:Key="ColorSurfaceHighest">#E3E2E0</Color>
+        <Color x:Key="ColorOnSurface">#1A1C1A</Color>
+        <Color x:Key="ColorOnSurfaceVariant">#584238</Color>
+        <Color x:Key="ColorPrimary">#9C3F00</Color>
+        <Color x:Key="ColorPrimaryContainer">#C45100</Color>
+        <Color x:Key="ColorSecondary">#7D5800</Color>
+        <Color x:Key="ColorSecondaryContainer">#FFB702</Color>
+        <Color x:Key="ColorTertiary">#914809</Color>
+        <Color x:Key="ColorError">#BA1A1A</Color>
+        <Color x:Key="ColorErrorContainer">#FFDAD6</Color>
+        <Color x:Key="ColorOutline">#8C7166</Color>
+        <Color x:Key="ColorOutlineVariant">#E0C0B2</Color>
+        <Color x:Key="ColorSoftBorder">#E5E2DA</Color>
+
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource ColorBackground}" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource ColorSurface}" />
+        <SolidColorBrush x:Key="SurfaceLowestBrush" Color="{StaticResource ColorSurfaceLowest}" />
+        <SolidColorBrush x:Key="SurfaceLowBrush" Color="{StaticResource ColorSurfaceLow}" />
+        <SolidColorBrush x:Key="SurfaceContainerBrush" Color="{StaticResource ColorSurfaceContainer}" />
+        <SolidColorBrush x:Key="SurfaceHighBrush" Color="{StaticResource ColorSurfaceHigh}" />
+        <SolidColorBrush x:Key="OnSurfaceBrush" Color="{StaticResource ColorOnSurface}" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource ColorOnSurfaceVariant}" />
+        <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource ColorPrimary}" />
+        <SolidColorBrush x:Key="PrimaryContainerBrush" Color="{StaticResource ColorPrimaryContainer}" />
+        <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource ColorSecondary}" />
+        <SolidColorBrush x:Key="SecondaryContainerBrush" Color="{StaticResource ColorSecondaryContainer}" />
+        <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource ColorTertiary}" />
+        <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ColorError}" />
+        <SolidColorBrush x:Key="ErrorContainerBrush" Color="{StaticResource ColorErrorContainer}" />
+        <SolidColorBrush x:Key="OutlineBrush" Color="{StaticResource ColorOutline}" />
+        <SolidColorBrush x:Key="OutlineVariantBrush" Color="{StaticResource ColorOutlineVariant}" />
+        <SolidColorBrush x:Key="SoftBorderBrush" Color="{StaticResource ColorSoftBorder}" />
+        <SolidColorBrush x:Key="ZebraBrush" Color="#FFFBEB" />
+
+        <FontFamily x:Key="AppFontFamily">Work Sans, Segoe UI</FontFamily>
+        <FontFamily x:Key="IconFontFamily">Segoe MDL2 Assets</FontFamily>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+        </Style>
+
+        <Style x:Key="LabelTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+        </Style>
+
+        <Style x:Key="HeadlineLargeStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="32" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="LineHeight" Value="38" />
+        </Style>
+
+        <Style x:Key="HeadlineMediumStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LineHeight" Value="31" />
+        </Style>
+
+        <Style x:Key="HeadlineSmallStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="LineHeight" Value="28" />
         </Style>
 
         <Style TargetType="Button">
-            <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="Padding" Value="14,8" />
-            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="{StaticResource SurfaceLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource SurfaceLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Background" Value="{StaticResource SurfaceLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
+        </Style>
+
+        <Style TargetType="PasswordBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Background" Value="{StaticResource SurfaceLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
+        </Style>
+
+        <Style x:Key="CardBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource SurfaceLowestBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
         </Style>
     </Application.Resources>
 </Application>
-

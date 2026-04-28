@@ -110,9 +110,12 @@ public sealed class EfCoreDataStore(PoultryProDbContext dbContext) :
 
     public async Task<decimal> GetPreviouslyReturnedQuantityAsync(Guid invoiceItemId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.SalesReturnItems
+        var quantities = await dbContext.SalesReturnItems
             .Where(item => item.InvoiceItemId == invoiceItemId)
-            .SumAsync(item => item.Quantity, cancellationToken);
+            .Select(item => item.Quantity)
+            .ToListAsync(cancellationToken);
+
+        return quantities.Sum();
     }
 
     public async Task UpdateBatchAsync(Batch batch, CancellationToken cancellationToken = default)
@@ -191,21 +194,26 @@ public sealed class EfCoreDataStore(PoultryProDbContext dbContext) :
 
     public async Task<decimal> GetSoldQuantityAsync(Guid batchId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.InvoiceItems
+        var quantities = await dbContext.InvoiceItems
             .Where(item => item.BatchId == batchId)
             .Join(
                 dbContext.Invoices.Where(invoice => invoice.PaymentStatus != PaymentStatus.Void),
                 item => item.InvoiceId,
                 invoice => invoice.InvoiceId,
                 (item, _) => item.Quantity)
-            .SumAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        return quantities.Sum();
     }
 
     public async Task<decimal> GetWastedQuantityAsync(Guid batchId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.WastageRecords
+        var quantities = await dbContext.WastageRecords
             .Where(record => record.BatchId == batchId)
-            .SumAsync(record => record.Quantity, cancellationToken);
+            .Select(record => record.Quantity)
+            .ToListAsync(cancellationToken);
+
+        return quantities.Sum();
     }
 
     public async Task AddCustomerAsync(Customer customer, CancellationToken cancellationToken = default)
