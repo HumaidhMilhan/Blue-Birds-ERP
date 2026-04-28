@@ -25,7 +25,7 @@ public sealed class NotificationOptions
 {
     public string OwnerWhatsAppNumber { get; init; } = string.Empty;
     public TimeOnly DailyReportTime { get; init; } = new(20, 0);
+    public int PaymentReminderLeadDays { get; init; } = 3;
     public int MaxRetryCount { get; init; } = 3;
     public int RetryIntervalMinutes { get; init; } = 10;
 }
-

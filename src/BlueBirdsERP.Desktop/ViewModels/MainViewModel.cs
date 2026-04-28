@@ -10,14 +10,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public string CompanyName { get; } = "Blue Birds Poultry";
     public string CurrentSession { get; } = "Authentication module pending";
     public string DashboardSubtitle { get; } = "Initial shell for POS, inventory, credit, reporting, notifications, and administration.";
+    public PosWorkspaceViewModel PosWorkspace { get; } = new();
 
     public ObservableCollection<ModuleTile> Modules { get; } =
     [
         new("POS", "Retail and wholesale billing", "Manual batch selection, mixed wholesale payments, invoice printing, and offline checkout path.", "Scaffolded"),
-        new("Inventory", "Batch stock control", "GRN-created batches, low-stock alerts, expiry tracking, and wastage recording.", "Scaffolded"),
+        new("Inventory", "Batch stock control", "Manual purchased batches, low-stock alerts, expiry tracking, and wastage recording.", "Scaffolded"),
         new("Credit", "Debtors and payments", "Business accounts, soft credit-limit alerts, aging, payment history, and credit notes.", "Scaffolded"),
-        new("Purchasing", "Suppliers and GRNs", "Supplier profiles, purchase orders, partial GRNs, batch creation, and purchase returns.", "Scaffolded"),
-        new("WhatsApp", "Twilio notifications", "Payment reminders, overdue alerts, retry log, and owner daily sales summary.", "Adapter stub"),
+        new("Purchasing", "Manual batch purchases", "Admin records purchased batches directly with quantity, cost, purchase date, and expiry details.", "Scaffolded"),
+        new("WhatsApp", "Queued notifications", "Payment reminders, overdue alerts, retry policy, templates, logs, and owner profit/wastage summary.", "Scaffolded"),
         new("Admin", "Security and configuration", "RBAC, session timeout, user management, encrypted settings, reports, and audit log.", "Scaffolded")
     ];
 
@@ -44,4 +45,3 @@ public sealed record ModuleTile(
     string Area,
     string Description,
     string Status);
-

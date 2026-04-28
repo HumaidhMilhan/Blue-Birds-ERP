@@ -19,6 +19,12 @@ public enum AccountType
     OneTimeCreditor
 }
 
+public enum BusinessAccountStatus
+{
+    Active,
+    Suspended
+}
+
 public enum SaleChannel
 {
     Retail,
@@ -31,6 +37,12 @@ public enum PaymentMethod
     Card,
     Credit,
     Mixed
+}
+
+public enum PaymentKind
+{
+    Payment,
+    Refund
 }
 
 public enum PaymentStatus
@@ -81,4 +93,3 @@ public enum NotificationStatus
     Sent,
     Failed
 }
-

@@ -21,6 +21,7 @@ public sealed class Customer
     public string WhatsAppNo { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? Address { get; set; }
+    public string? NicOrBusinessRegistrationNumber { get; set; }
     public CustomerType CustomerType { get; set; }
     public AccountType AccountType { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
@@ -34,18 +35,8 @@ public sealed class BusinessAccount
     public int CreditPeriodDays { get; set; }
     public int NotificationLeadDays { get; set; }
     public decimal OutstandingBalance { get; set; }
+    public BusinessAccountStatus Status { get; set; } = BusinessAccountStatus.Active;
     public bool IsActive { get; set; } = true;
-}
-
-public sealed class Supplier
-{
-    public Guid SupplierId { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public string? ContactPerson { get; set; }
-    public string Phone { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Address { get; set; }
-    public string? PaymentTerms { get; set; }
 }
 
 public sealed class ProductCategory
@@ -71,8 +62,6 @@ public sealed class Batch
 {
     public Guid BatchId { get; set; } = Guid.NewGuid();
     public Guid ProductId { get; set; }
-    public Guid SupplierId { get; set; }
-    public Guid? PurchaseOrderId { get; set; }
     public DateTime PurchaseDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public decimal InitialQuantity { get; set; }
@@ -88,16 +77,20 @@ public sealed class Invoice
     public Guid? CustomerId { get; set; }
     public Guid CashierId { get; set; }
     public SaleChannel SaleChannel { get; set; }
+    public PaymentMethod PaymentMethod { get; set; }
     public DateTimeOffset InvoiceDate { get; set; } = DateTimeOffset.UtcNow;
     public DateTime? DueDate { get; set; }
     public decimal Subtotal { get; set; }
     public decimal DiscountTotal { get; set; }
-    public decimal TaxTotal { get; set; }
     public decimal GrandTotal { get; set; }
     public decimal PaidAmount { get; set; }
     public decimal BalanceAmount { get; set; }
+    public decimal RefundedAmount { get; set; }
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public string? Notes { get; set; }
+    public string? VoidReason { get; set; }
+    public Guid? VoidedBy { get; set; }
+    public DateTimeOffset? VoidedAt { get; set; }
     public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
 }
 
@@ -107,6 +100,9 @@ public sealed class InvoiceItem
     public Guid InvoiceId { get; set; }
     public Guid ProductId { get; set; }
     public Guid BatchId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public string BatchReference { get; set; } = string.Empty;
+    public string UnitOfMeasure { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal DiscountAmount { get; set; }
@@ -121,6 +117,7 @@ public sealed class Payment
     public DateTimeOffset PaymentDate { get; set; } = DateTimeOffset.UtcNow;
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
+    public PaymentKind PaymentKind { get; set; } = PaymentKind.Payment;
     public string? Reference { get; set; }
     public Guid RecordedBy { get; set; }
 }
@@ -147,7 +144,24 @@ public sealed class SalesReturn
     public DateTimeOffset ReturnDate { get; set; } = DateTimeOffset.UtcNow;
     public string Reason { get; set; } = string.Empty;
     public decimal TotalValue { get; set; }
+    public decimal RefundAmount { get; set; }
+    public PaymentMethod? RefundMethod { get; set; }
+    public DateTimeOffset? RefundedAt { get; set; }
     public Guid ProcessedBy { get; set; }
+    public ICollection<SalesReturnItem> Items { get; set; } = new List<SalesReturnItem>();
+}
+
+public sealed class SalesReturnItem
+{
+    public Guid ReturnItemId { get; set; } = Guid.NewGuid();
+    public Guid ReturnId { get; set; }
+    public Guid InvoiceItemId { get; set; }
+    public Guid ProductId { get; set; }
+    public Guid BatchId { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal SoldUnitValue { get; set; }
+    public decimal ReturnValue { get; set; }
+    public Guid? WastageId { get; set; }
 }
 
 public sealed class Notification
@@ -157,11 +171,25 @@ public sealed class Notification
     public Guid? InvoiceId { get; set; }
     public NotificationType NotificationType { get; set; }
     public NotificationChannel Channel { get; set; } = NotificationChannel.WhatsApp;
+    public string RecipientWhatsAppNo { get; set; } = string.Empty;
     public string MessageBody { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset ScheduledAt { get; set; }
     public DateTimeOffset? SentAt { get; set; }
+    public DateTimeOffset? LastAttemptedAt { get; set; }
+    public DateTimeOffset? NextRetryAt { get; set; }
+    public string? FailureReason { get; set; }
     public NotificationStatus Status { get; set; } = NotificationStatus.Pending;
     public int RetryCount { get; set; }
+}
+
+public sealed class NotificationTemplate
+{
+    public Guid TemplateId { get; set; } = Guid.NewGuid();
+    public NotificationType NotificationType { get; set; }
+    public string TemplateBody { get; set; } = string.Empty;
+    public Guid UpdatedBy { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
 
 public sealed class AuditLog
@@ -177,4 +205,3 @@ public sealed class AuditLog
     public string? AfterValueJson { get; set; }
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
 }
-

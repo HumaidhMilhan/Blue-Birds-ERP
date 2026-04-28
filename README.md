@@ -2,7 +2,7 @@
 
 Blue Birds ERP is a native Windows desktop ERP for a pre-processed poultry retail and wholesale shop. The product-facing name is **PoultryPro ERP**.
 
-The scaffold follows the SRS in `docs/PoultryPro_SRS_v1.0.pdf` and is organized for POS billing, batch inventory, supplier GRNs, credit accounts, returns, wastage, Twilio WhatsApp notifications, RBAC, audit logging, and partial offline POS operation.
+The scaffold follows the SRS in `docs/PoultryPro_SRS_v1.0.pdf` and is organized for POS billing, manual batch inventory purchases, credit accounts, returns, wastage, queued WhatsApp notifications, RBAC, audit logging, and partial offline POS operation.
 
 ## Technology
 
@@ -35,4 +35,4 @@ dotnet run --project src/BlueBirdsERP.Desktop/BlueBirdsERP.Desktop.csproj
 
 ## Current Status
 
-This is the initial project structure. It intentionally includes interfaces and placeholders before full feature implementation so the project can grow module by module without mixing UI, business rules, and infrastructure concerns.
+Implemented slices now cover POS billing/returns, customer credit accounts, manual batch inventory, and queued WhatsApp notification rules. Infrastructure adapters are still placeholders where credentials or deployment-specific services are required.

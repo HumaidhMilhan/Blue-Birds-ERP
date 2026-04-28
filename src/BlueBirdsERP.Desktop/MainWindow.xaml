@@ -166,27 +166,142 @@
                         Background="{StaticResource SurfaceBrush}"
                         CornerRadius="8"
                         Padding="22">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top"
-                                   Text="SRS Guardrails"
-                                   FontSize="20"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,0,14" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="POS Workbench"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,14" />
 
-                        <ItemsControl ItemsSource="{Binding Guardrails}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}"
-                                               TextWrapping="Wrap"
-                                               Foreground="#33413E"
-                                               Margin="0,0,0,12" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </DockPanel>
+                            <TextBlock Text="Sale Channel"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.SaleChannels}"
+                                          Margin="0,8,0,14">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#EFF4F1"
+                                                CornerRadius="6"
+                                                Padding="8"
+                                                Margin="0,0,0,6">
+                                            <TextBlock Text="{Binding}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Retail Payments"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.RetailPaymentMethods}"
+                                          Margin="0,8,0,14">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   Margin="0,0,0,4" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Wholesale Payments"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.WholesalePaymentMethods}"
+                                          Margin="0,8,0,14">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   Margin="0,0,0,4" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Batch Picker Fields"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.BatchPickerFields}"
+                                          Margin="0,8,0,14">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   Margin="0,0,0,4" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Credit Panel Fields"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.CreditPanelFields}"
+                                          Margin="0,8,0,22">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   Margin="0,0,0,4" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Account Management"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.AccountManagementFields}"
+                                          Margin="0,8,0,14">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,6" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Payment History Columns"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.PaymentHistoryColumns}"
+                                          Margin="0,8,0,22">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   Margin="0,0,0,4" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="Inventory Rules"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                            <ItemsControl ItemsSource="{Binding PosWorkspace.InventoryRules}"
+                                          Margin="0,8,0,22">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,6" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <TextBlock Text="SRS Guardrails"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,14" />
+
+                            <ItemsControl ItemsSource="{Binding Guardrails}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="#33413E"
+                                                   Margin="0,0,0,12" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </Grid>
     </Grid>
 </Window>
-

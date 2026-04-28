@@ -5,6 +5,12 @@ namespace BlueBirdsERP.Domain.BusinessRules;
 
 public static class PoultryBusinessRules
 {
+    public static IReadOnlyList<SaleChannel> SaleChannels { get; } =
+    [
+        SaleChannel.Retail,
+        SaleChannel.Wholesale
+    ];
+
     public static bool IsPaymentMethodAllowed(SaleChannel saleChannel, PaymentMethod paymentMethod)
     {
         return saleChannel switch
@@ -13,6 +19,33 @@ public static class PoultryBusinessRules
             SaleChannel.Wholesale => paymentMethod is PaymentMethod.Cash or PaymentMethod.Card or PaymentMethod.Credit or PaymentMethod.Mixed,
             _ => false
         };
+    }
+
+    public static IReadOnlyList<PaymentMethod> GetAllowedPaymentMethods(SaleChannel saleChannel)
+    {
+        return saleChannel switch
+        {
+            SaleChannel.Retail => [PaymentMethod.Cash, PaymentMethod.Card],
+            SaleChannel.Wholesale => [PaymentMethod.Cash, PaymentMethod.Card, PaymentMethod.Credit, PaymentMethod.Mixed],
+            _ => []
+        };
+    }
+
+    public static string CreateInvoiceNumber(DateOnly invoiceDate, SaleChannel saleChannel, int dailySequence)
+    {
+        if (dailySequence <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dailySequence), "Invoice sequence must be greater than zero.");
+        }
+
+        var channelCode = saleChannel switch
+        {
+            SaleChannel.Retail => "R",
+            SaleChannel.Wholesale => "W",
+            _ => throw new ArgumentOutOfRangeException(nameof(saleChannel), saleChannel, "Unsupported sale channel.")
+        };
+
+        return $"INV-{invoiceDate:yyyyMMdd}{channelCode}-{dailySequence:0000}";
     }
 
     public static bool CanDeductStock(decimal remainingQuantity, decimal requestedQuantity)
@@ -71,6 +104,11 @@ public static class PoultryBusinessRules
             OutstandingBalance: account.OutstandingBalance,
             AvailableCredit: availableCredit);
     }
+
+    public static bool RequiresCreditDueDate(PaymentMethod paymentMethod)
+    {
+        return paymentMethod is PaymentMethod.Credit or PaymentMethod.Mixed;
+    }
 }
 
 public sealed record CreditLimitAlert(
@@ -78,4 +116,3 @@ public sealed record CreditLimitAlert(
     bool IsBlocking,
     decimal OutstandingBalance,
     decimal AvailableCredit);
-

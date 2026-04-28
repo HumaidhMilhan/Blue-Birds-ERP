@@ -18,7 +18,7 @@ public static class DependencyInjection
         configure?.Invoke(options);
 
         services.AddSingleton(options);
-        services.AddSingleton<INotificationService, TwilioWhatsAppNotificationService>();
+        services.AddSingleton<IWhatsAppNotificationQueue, TwilioWhatsAppNotificationService>();
         services.AddSingleton<IReceiptPrinter, WindowsReceiptPrinter>();
         services.AddSingleton<IOfflineSyncQueue, LocalOfflineSyncQueue>();
         services.AddSingleton<EncryptedConfigurationStore>();
@@ -26,4 +26,3 @@ public static class DependencyInjection
         return services;
     }
 }
-
