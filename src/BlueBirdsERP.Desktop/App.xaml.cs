@@ -1,99 +1,81 @@
-using System.IO;
 using System.Windows;
 using BlueBirdsERP.Desktop.Services;
 using BlueBirdsERP.Desktop.ViewModels;
 using BlueBirdsERP.Infrastructure;
 using BlueBirdsERP.Infrastructure.Configuration;
+using BlueBirdsERP.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace BlueBirdsERP.Desktop;
 
 public partial class App : System.Windows.Application
 {
-    private ServiceProvider? _serviceProvider;
+    private readonly IHost _host;
 
     public App()
     {
-        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-        {
-            if (args.ExceptionObject is Exception exception)
+        _host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
             {
-                WriteStartupFailure(exception);
-            }
-        };
+                services.AddInfrastructure(opt =>
+                {
+                    opt.EnvironmentName = "Development";
+                    opt.Database = new DatabaseOptions
+                    {
+                        LocalPosConnectionString = "Data Source=bluebirds-mvp.sqlite3"
+                    };
+                    opt.DevelopmentBootstrap = new DevelopmentBootstrapOptions
+                    {
+                        Enabled = true,
+                        Username = "admin",
+                        Password = "admin123"
+                    };
+                });
 
-        DispatcherUnhandledException += (_, args) =>
-        {
-            WriteStartupFailure(args.Exception);
-            args.Handled = false;
-        };
+                services.AddSingleton<INavigationService, NavigationService>();
+
+                // Shell
+                services.AddSingleton<MainViewModel>();
+
+                // Pages
+                services.AddTransient<LoginViewModel>();
+                services.AddTransient<PosCheckoutViewModel>();
+                services.AddTransient<DashboardViewModel>();
+                services.AddTransient<CreditorsViewModel>();
+                services.AddTransient<AnalyticsViewModel>();
+                services.AddTransient<InventoryViewModel>();
+                services.AddTransient<SettingsViewModel>();
+
+                // Windows
+                services.AddSingleton<MainWindow>();
+            })
+            .Build();
     }
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
-        try
+        await _host.StartAsync();
+
+        // Ensure database tables exist
+        using (var scope = _host.Services.CreateScope())
         {
-            base.OnStartup(e);
-
-            var dataDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "BlueBirdsERP");
-            Directory.CreateDirectory(dataDirectory);
-
-            var services = new ServiceCollection();
-            services.AddInfrastructure(options =>
-            {
-#if DEBUG
-                options.EnvironmentName = "Development";
-                options.DevelopmentBootstrap = new DevelopmentBootstrapOptions
-                {
-                    Enabled = true,
-                    Username = "Kratos",
-                    Password = "Kratossparta"
-                };
-#endif
-                options.Database = new DatabaseOptions
-                {
-                    Provider = "SQLite",
-                    LocalPosConnectionString = $"Data Source={Path.Combine(dataDirectory, "bluebirds-mvp.sqlite3")}",
-                    BackupDirectory = Path.Combine(dataDirectory, "backups")
-                };
-            });
-            services.AddScoped<DesktopStartupService>();
-            services.AddSingleton<MainViewModel>();
-            services.AddSingleton<MainWindow>();
-
-            _serviceProvider = services.BuildServiceProvider();
-
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                scope.ServiceProvider
-                    .GetRequiredService<DesktopStartupService>()
-                    .InitializeAsync()
-                    .GetAwaiter()
-                    .GetResult();
-            }
-
-            MainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-            MainWindow.Show();
+            var dbContext = scope.ServiceProvider.GetRequiredService<PoultryProDbContext>();
+            await dbContext.Database.EnsureCreatedAsync();
         }
-        catch (Exception exception)
-        {
-            WriteStartupFailure(exception);
-            throw;
-        }
+
+        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+
+        base.OnStartup(e);
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    protected override async void OnExit(ExitEventArgs e)
     {
-        _serviceProvider?.Dispose();
+        await _host.StopAsync();
+        _host.Dispose();
+
         base.OnExit(e);
-    }
-
-    private static void WriteStartupFailure(Exception exception)
-    {
-        var logPath = Path.Combine(Path.GetTempPath(), "BlueBirdsERP.Desktop.startup.log");
-        var message = $"[{DateTimeOffset.Now:O}]{Environment.NewLine}{exception}{Environment.NewLine}";
-        File.AppendAllText(logPath, message);
     }
 }

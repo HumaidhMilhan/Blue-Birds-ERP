@@ -1,1156 +1,275 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Windows.Input;
+using System.Windows.Threading;
 using BlueBirdsERP.Application.Abstractions;
+using BlueBirdsERP.Desktop.Services;
 using BlueBirdsERP.Domain.Enums;
-using BlueBirdsERP.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using static BlueBirdsERP.Desktop.ViewModels.Formatters;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BlueBirdsERP.Desktop.ViewModels;
 
-public sealed class MainViewModel : ViewModelBase
+public partial class MainViewModel : ViewModelBase
 {
-    private readonly ILoginSessionFacade _loginSession;
-    private readonly DashboardPageViewModel _dashboardPage;
-    private readonly PosPageViewModel _posPage;
-    private readonly InventoryPageViewModel _inventoryPage;
-    private readonly CreditorsPageViewModel _creditorsPage;
-    private readonly ReportsPageViewModel _reportsPage;
-    private readonly SettingsPageViewModel _settingsPage;
-    private PageViewModelBase? _currentPage;
-    private string _loginUsername = string.Empty;
-    private string _password = string.Empty;
-    private string _loginError = string.Empty;
-    private bool _isAuthenticated;
-    private string _currentUserDisplay = "Not signed in";
-    private string _currentRoleDisplay = string.Empty;
-    private string _statusMessage = "SQLite offline mode ready.";
+    private readonly IServiceProvider _serviceProvider;
+    private readonly INavigationService _navigationService;
+    private readonly ILoginSessionFacade _loginFacade;
+    private readonly ISessionService _sessionService;
+    private readonly IRbacAuthorizationService _rbacService;
+    private readonly DispatcherTimer _sessionTimer;
+    private readonly DispatcherTimer _clockTimer;
+    private DateTime _lastActivity;
+    private AuthenticatedUser? _currentUser;
+
+    [ObservableProperty] private ObservableObject? _currentView;
+    [ObservableProperty] private bool _isLoggedIn;
+    [ObservableProperty] private string _currentUsername = string.Empty;
+    [ObservableProperty] private string _currentRole = string.Empty;
+    [ObservableProperty] private string _currentPageTitle = string.Empty;
+    [ObservableProperty] private string _currentDateTime = string.Empty;
+    [ObservableProperty] private bool _isSidebarCollapsed;
+    [ObservableProperty] private ObservableCollection<NavigationItem> _navigationItems = new();
+    [ObservableProperty] private NavigationItem? _selectedNavigationItem;
+
+    // Page keys for navigation
+    public const string PagePos = "POS";
+    public const string PageDashboard = "Dashboard";
+    public const string PageCreditors = "Creditors";
+    public const string PageAnalytics = "Analytics";
+    public const string PageInventory = "Inventory";
+    public const string PageSettings = "Settings";
 
     public MainViewModel(
-        ILoginSessionFacade loginSession,
-        PoultryProDbContext dbContext,
-        IInventoryService inventoryService,
-        IPOSCheckoutService checkoutService,
-        ICustomerAccountService customerAccountService,
-        IReportingService reportingService,
-        ISystemSettingsService settingsService,
-        IDatabaseManagementService databaseManagementService,
-        IReceiptPdfService receiptPdfService)
+        IServiceProvider serviceProvider,
+        INavigationService navigationService,
+        ILoginSessionFacade loginFacade,
+        ISessionService sessionService,
+        IRbacAuthorizationService rbacService)
     {
-        _loginSession = loginSession;
-        _dashboardPage = new DashboardPageViewModel(this, dbContext, databaseManagementService);
-        _posPage = new PosPageViewModel(this, dbContext, checkoutService, receiptPdfService);
-        _inventoryPage = new InventoryPageViewModel(this, dbContext, inventoryService);
-        _creditorsPage = new CreditorsPageViewModel(this, dbContext, customerAccountService);
-        _reportsPage = new ReportsPageViewModel(this, reportingService);
-        _settingsPage = new SettingsPageViewModel(this, settingsService, databaseManagementService);
+        _serviceProvider = serviceProvider;
+        _navigationService = navigationService;
+        _loginFacade = loginFacade;
+        _sessionService = sessionService;
+        _rbacService = rbacService;
 
-        NavigationItems =
-        [
-            new("Dashboard", "\uE80F", _dashboardPage, null),
-            new("Point of Sale", "\uE7BF", _posPage, RbacPermission.PosBilling),
-            new("Inventory", "\uE8D2", _inventoryPage, RbacPermission.InventoryManagement),
-            new("Creditors", "\uE716", _creditorsPage, RbacPermission.PaymentRecording),
-            new("Reports", "\uE9D2", _reportsPage, RbacPermission.Reporting),
-            new("Settings", "\uE713", _settingsPage, RbacPermission.SystemConfiguration)
-        ];
-
-        LoginCommand = new AsyncRelayCommand(_ => SignInAsync());
-        LogoutCommand = new AsyncRelayCommand(_ => LogoutAsync());
-        NavigateCommand = new AsyncRelayCommand(parameter => NavigateAsync(parameter as NavigationItem));
-    }
-
-    public string ProductName { get; } = "PoultryPro ERP";
-    public string CompanyName { get; } = "Blue Birds Poultry";
-    public ObservableCollection<NavigationItem> NavigationItems { get; }
-    public ObservableCollection<string> VisiblePermissions { get; } = [];
-    public ICommand LoginCommand { get; }
-    public ICommand LogoutCommand { get; }
-    public ICommand NavigateCommand { get; }
-
-    public AuthenticatedUser? CurrentUser => _loginSession.CurrentUser;
-
-    public PageViewModelBase? CurrentPage
-    {
-        get => _currentPage;
-        private set => SetProperty(ref _currentPage, value);
-    }
-
-    public string LoginUsername
-    {
-        get => _loginUsername;
-        set => SetProperty(ref _loginUsername, value);
-    }
-
-    public string Password
-    {
-        get => _password;
-        set => SetProperty(ref _password, value);
-    }
-
-    public string LoginError
-    {
-        get => _loginError;
-        private set => SetProperty(ref _loginError, value);
-    }
-
-    public bool IsAuthenticated
-    {
-        get => _isAuthenticated;
-        private set
+        _navigationService.NavigationChanged += () =>
         {
-            if (SetProperty(ref _isAuthenticated, value))
-            {
-                OnPropertyChanged(nameof(IsLoginVisible));
-            }
+            CurrentView = _navigationService.CurrentView;
+        };
+
+        // Session timeout timer (1-min tick, 15-min timeout)
+        _sessionTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        _sessionTimer.Tick += SessionTimerTick;
+
+        // Clock timer (1-sec tick)
+        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _clockTimer.Tick += (s, e) => CurrentDateTime = DateTime.Now.ToString("ddd, MMM dd yyyy  •  HH:mm:ss");
+        _clockTimer.Start();
+        CurrentDateTime = DateTime.Now.ToString("ddd, MMM dd yyyy  •  HH:mm:ss");
+
+        ShowLogin();
+    }
+
+    partial void OnSelectedNavigationItemChanged(NavigationItem? value)
+    {
+        if (value?.NavigateCommand?.CanExecute(null) == true)
+        {
+            value.NavigateCommand.Execute(null);
         }
     }
 
-    public bool IsLoginVisible => !IsAuthenticated;
-
-    public string CurrentUserDisplay
+    private void ShowLogin()
     {
-        get => _currentUserDisplay;
-        private set => SetProperty(ref _currentUserDisplay, value);
+        IsLoggedIn = false;
+        CurrentUsername = string.Empty;
+        CurrentRole = string.Empty;
+        CurrentPageTitle = string.Empty;
+        _currentUser = null;
+        NavigationItems.Clear();
+        _sessionTimer.Stop();
+
+        var loginVm = _serviceProvider.GetRequiredService<LoginViewModel>();
+        loginVm.LoginSucceeded = OnLoginSucceeded;
+        _navigationService.NavigateTo(loginVm);
     }
 
-    public string CurrentRoleDisplay
+    private async void OnLoginSucceeded(LoginResult result)
     {
-        get => _currentRoleDisplay;
-        private set => SetProperty(ref _currentRoleDisplay, value);
-    }
+        IsLoggedIn = true;
+        _currentUser = result.User;
+        CurrentUsername = result.User!.Username;
+        CurrentRole = result.User.Role.ToString();
 
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
-    }
+        await _sessionService.BeginSessionAsync(result.User);
+        _lastActivity = DateTime.UtcNow;
+        _sessionTimer.Start();
 
-    public bool HasPermission(RbacPermission permission)
-    {
-        return _loginSession.CurrentPermissions.Contains(permission);
-    }
+        BuildNavigationItems(result.Permissions);
 
-    private async Task SignInAsync()
-    {
-        LoginError = string.Empty;
-        StatusMessage = "Signing in...";
-
-        try
+        // Navigate to first available page
+        if (NavigationItems.Count > 0)
         {
-            var result = await _loginSession.SignInAsync(new LoginRequest(LoginUsername, Password));
-            if (!result.IsAuthenticated || result.User is null)
-            {
-                LoginError = result.ErrorMessage ?? "Invalid username or password.";
-                StatusMessage = "Sign in failed.";
-                return;
-            }
-
-            IsAuthenticated = true;
-            CurrentUserDisplay = result.User.Username;
-            CurrentRoleDisplay = result.User.Role.ToString().ToUpperInvariant();
-            VisiblePermissions.Clear();
-
-            foreach (var permission in result.Permissions.OrderBy(permission => permission.ToString()))
-            {
-                VisiblePermissions.Add(permission.ToString());
-            }
-
-            foreach (var item in NavigationItems)
-            {
-                item.IsVisible = item.RequiredPermission is null || result.Permissions.Contains(item.RequiredPermission.Value);
-            }
-
-            Password = string.Empty;
-            StatusMessage = "Signed in. Local SQLite services are connected.";
-            await NavigateAsync(NavigationItems.First(item => item.Title == "Dashboard"));
-        }
-        catch (Exception ex)
-        {
-            LoginError = ex.Message;
-            StatusMessage = "Sign in failed.";
+            SelectedNavigationItem = NavigationItems[0];
         }
     }
 
+    private void BuildNavigationItems(IReadOnlySet<RbacPermission> permissions)
+    {
+        NavigationItems.Clear();
+
+        // POS — Cashier and Admin
+        if (permissions.Contains(RbacPermission.PosBilling))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "POS Billing",
+                "M10,2H3V22H10V14H14V22H21V2H14V10H10V2Z",
+                PagePos,
+                RbacPermission.PosBilling,
+                NavigateToPos));
+        }
+
+        // Dashboard — Admin only (requires Reporting)
+        if (permissions.Contains(RbacPermission.Reporting))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "Dashboard",
+                "M3,3V21H21V19H5V3H3M14,7A2,2 0 0,1 16,9A2,2 0 0,1 14,11A2,2 0 0,1 12,9A2,2 0 0,1 14,7M14,13C17.31,13 20,14.79 20,17V19H8V17C8,14.79 10.69,13 14,13M14,15C11.79,15 10,15.9 10,17V18H18V17C18,15.9 16.21,15 14,15Z",
+                PageDashboard,
+                RbacPermission.Reporting,
+                NavigateToDashboard));
+        }
+
+        // Creditors — Cashier (read) and Admin
+        if (permissions.Contains(RbacPermission.CustomerAccountManagement) ||
+            permissions.Contains(RbacPermission.CustomerReadOnlyLookup))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "Creditors",
+                "M16,13C14.69,13 13.38,13.28 12.27,13.85C11.34,13.34 10.25,13.07 9.07,13.07C6.13,13.07 3.5,14.95 2.28,17.71L1,16.07C2.5,12.73 5.5,10.5 9.07,10.5C10.55,10.5 11.92,10.87 13.09,11.5C13.84,10.63 14.87,10.06 16,10.06C18.34,10.06 20.24,11.96 20.24,14.3C20.24,14.53 20.22,14.76 20.18,14.97C20.78,14.37 21.5,13.89 22.31,13.59L23,16.07C21.82,16.55 20.82,17.32 20.1,18.28C21.14,18.78 22,19.59 22.57,20.59L21.15,21.5C20.22,19.87 18.36,18.78 16.24,18.78C14.9,18.78 13.67,19.13 12.6,19.72L11.4,17.69C12.58,17.19 13.9,16.89 15.3,16.89C17.64,16.89 19.65,18.24 20.64,20.19C19.85,20.72 18.83,21 17.7,21C15.2,21 13.13,19.28 12.5,17H10.5C10.5,17 10.5,17 10.5,17C11.13,19.28 9.06,21 6.56,21C4.06,21 2,19.28 2,17C2,14.72 4.06,13 6.56,13H16Z",
+                PageCreditors,
+                RbacPermission.CustomerAccountManagement,
+                NavigateToCreditors));
+        }
+
+        // Analytics — Admin only
+        if (permissions.Contains(RbacPermission.Reporting))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "Analytics",
+                "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z",
+                PageAnalytics,
+                RbacPermission.Reporting,
+                NavigateToAnalytics));
+        }
+
+        // Inventory — Cashier (read) and Admin
+        if (permissions.Contains(RbacPermission.InventoryManagement) ||
+            permissions.Contains(RbacPermission.BatchManagement))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "Inventory",
+                "M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,17H7V7H17V17Z",
+                PageInventory,
+                RbacPermission.InventoryManagement,
+                NavigateToInventory));
+        }
+
+        // Settings — Admin only
+        if (permissions.Contains(RbacPermission.SystemConfiguration))
+        {
+            NavigationItems.Add(new NavigationItem(
+                "Settings",
+                "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z",
+                PageSettings,
+                RbacPermission.SystemConfiguration,
+                NavigateToSettings));
+        }
+    }
+
+    [RelayCommand]
+    private void NavigateToPos()
+    {
+        var vm = _serviceProvider.GetRequiredService<PosCheckoutViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "POS Billing";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void NavigateToDashboard()
+    {
+        var vm = _serviceProvider.GetRequiredService<DashboardViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "Dashboard";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void NavigateToCreditors()
+    {
+        var vm = _serviceProvider.GetRequiredService<CreditorsViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "Creditors";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void NavigateToAnalytics()
+    {
+        var vm = _serviceProvider.GetRequiredService<AnalyticsViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "Analytics";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void NavigateToInventory()
+    {
+        var vm = _serviceProvider.GetRequiredService<InventoryViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "Inventory";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void NavigateToSettings()
+    {
+        var vm = _serviceProvider.GetRequiredService<SettingsViewModel>();
+        _navigationService.NavigateTo(vm);
+        CurrentPageTitle = "Settings";
+        Touch();
+    }
+
+    [RelayCommand]
+    private void ToggleSidebar()
+    {
+        IsSidebarCollapsed = !IsSidebarCollapsed;
+    }
+
+    [RelayCommand]
     private async Task LogoutAsync()
     {
-        await _loginSession.LogoutAsync();
-        IsAuthenticated = false;
-        CurrentPage = null;
-        CurrentUserDisplay = "Not signed in";
-        CurrentRoleDisplay = string.Empty;
-        VisiblePermissions.Clear();
-        StatusMessage = "Signed out.";
+        _sessionTimer.Stop();
+        await _loginFacade.LogoutAsync();
+        ShowLogin();
+    }
 
-        foreach (var item in NavigationItems)
+    public void Touch()
+    {
+        _lastActivity = DateTime.UtcNow;
+        _sessionService.TouchAsync();
+    }
+
+    private async void SessionTimerTick(object? sender, EventArgs e)
+    {
+        if (!IsLoggedIn) return;
+
+        var inactiveTime = DateTime.UtcNow - _lastActivity;
+        if (inactiveTime >= _sessionService.InactivityTimeout)
         {
-            item.IsActive = false;
+            _sessionTimer.Stop();
+            await _sessionService.EndSessionAsync();
+            ShowLogin();
         }
-    }
-
-    private async Task NavigateAsync(NavigationItem? item)
-    {
-        if (item is null || !item.IsVisible)
-        {
-            return;
-        }
-
-        foreach (var navigationItem in NavigationItems)
-        {
-            navigationItem.IsActive = ReferenceEquals(navigationItem, item);
-        }
-
-        try
-        {
-            CurrentPage = item.Page;
-            StatusMessage = $"Loaded {item.Title}.";
-            await item.Page.LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"{item.Title} failed to load: {ex.Message}";
-        }
-    }
-}
-
-public sealed class NavigationItem(
-    string title,
-    string icon,
-    PageViewModelBase page,
-    RbacPermission? requiredPermission) : ViewModelBase
-{
-    private bool _isActive;
-    private bool _isVisible = true;
-
-    public string Title { get; } = title;
-    public string Icon { get; } = icon;
-    public PageViewModelBase Page { get; } = page;
-    public RbacPermission? RequiredPermission { get; } = requiredPermission;
-
-    public bool IsActive
-    {
-        get => _isActive;
-        set => SetProperty(ref _isActive, value);
-    }
-
-    public bool IsVisible
-    {
-        get => _isVisible;
-        set => SetProperty(ref _isVisible, value);
-    }
-}
-
-public abstract class PageViewModelBase(MainViewModel shell, string title, string icon) : ViewModelBase
-{
-    protected MainViewModel Shell { get; } = shell;
-
-    public string Title { get; } = title;
-    public string Icon { get; } = icon;
-
-    public abstract Task LoadAsync();
-}
-
-public sealed class DashboardPageViewModel(
-    MainViewModel shell,
-    PoultryProDbContext dbContext,
-    IDatabaseManagementService databaseManagementService) : PageViewModelBase(shell, "Dashboard", "\uE80F")
-{
-    public ObservableCollection<MetricCard> Metrics { get; } = [];
-    public ObservableCollection<RecentInvoiceRow> RecentInvoices { get; } = [];
-    public ObservableCollection<QueueStatusRow> QueueRows { get; } = [];
-
-    public override async Task LoadAsync()
-    {
-        var today = DateTime.Today;
-        var tomorrow = today.AddDays(1);
-        var invoices = await dbContext.Invoices
-            .Where(invoice => invoice.InvoiceDate >= today && invoice.InvoiceDate < tomorrow)
-            .Where(invoice => invoice.PaymentStatus != PaymentStatus.Void)
-            .OrderByDescending(invoice => invoice.InvoiceDate)
-            .Take(8)
-            .ToListAsync();
-
-        var activeBatchQuantities = await dbContext.Batches
-            .Where(batch => batch.Status == BatchStatus.Active)
-            .Select(batch => batch.RemainingQuantity)
-            .ToListAsync();
-        var outstandingBalances = await dbContext.Invoices
-            .Where(invoice => invoice.PaymentStatus != PaymentStatus.Void && invoice.BalanceAmount > 0)
-            .Select(invoice => invoice.BalanceAmount)
-            .ToListAsync();
-        var wastageLosses = await dbContext.WastageRecords
-            .Where(record => record.WastageDate == today)
-            .Select(record => record.EstimatedLoss)
-            .ToListAsync();
-
-        var stockOnHand = activeBatchQuantities.Sum();
-        var creditDue = outstandingBalances.Sum();
-        var wastageLoss = wastageLosses.Sum();
-
-        Metrics.ReplaceWith(
-            new MetricCard("Sales Today", Money(invoices.Sum(invoice => invoice.GrandTotal)), $"{invoices.Count} invoices", "\uE8C7"),
-            new MetricCard("Stock On Hand", $"{stockOnHand:N2}", "Active batch quantity", "\uE8D2"),
-            new MetricCard("Credit Due", Money(creditDue), "Open receivables", "\uE8A1"),
-            new MetricCard("Wastage Loss", Money(wastageLoss), "Recorded today", "\uE74D"));
-
-        RecentInvoices.ReplaceWith(invoices.Select(invoice => new RecentInvoiceRow(
-            invoice.InvoiceNumber,
-            invoice.SaleChannel.ToString(),
-            Money(invoice.GrandTotal),
-            invoice.PaymentStatus.ToString())));
-
-        QueueRows.Clear();
-        if (Shell.CurrentUser is { Role: UserRole.Admin } user)
-        {
-            var queue = await databaseManagementService.GetSyncQueueStatusAsync(new AdminOperationRequest(user.UserId, user.Role));
-            QueueRows.ReplaceWith(
-                new QueueStatusRow("Pending", queue.Pending),
-                new QueueStatusRow("Processing", queue.Processing),
-                new QueueStatusRow("Completed", queue.Completed),
-                new QueueStatusRow("Failed", queue.Failed));
-        }
-    }
-}
-
-public sealed class PosPageViewModel : PageViewModelBase
-{
-    private readonly PoultryProDbContext _dbContext;
-    private readonly IPOSCheckoutService _checkoutService;
-    private readonly IReceiptPdfService _receiptPdfService;
-    private ProductSaleRow? _selectedProduct;
-    private CustomerOption? _selectedCustomer;
-    private SaleChannel _selectedSaleChannel = SaleChannel.Retail;
-    private PaymentMethod _selectedPaymentMethod = PaymentMethod.Cash;
-    private decimal _quantity = 1m;
-    private decimal _cashAmount;
-    private decimal _cardAmount;
-    private decimal _creditAmount;
-    private string _manualDueDate = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd");
-    private string _message = "Select a product and add it to the invoice.";
-    private Guid? _lastInvoiceId;
-
-    public ObservableCollection<ProductSaleRow> Products { get; } = [];
-    public ObservableCollection<CartLineViewModel> CartLines { get; } = [];
-    public ObservableCollection<CustomerOption> Customers { get; } = [];
-    public ObservableCollection<SaleChannel> SaleChannels { get; } = [SaleChannel.Retail, SaleChannel.Wholesale];
-    public ObservableCollection<PaymentMethod> PaymentMethods { get; } = [];
-    public ICommand AddSelectedProductCommand { get; }
-    public ICommand RemoveLineCommand { get; }
-    public ICommand ClearCartCommand { get; }
-    public ICommand CheckoutCommand { get; }
-    public ICommand PreviewReceiptCommand { get; }
-
-    public PosPageViewModel(
-        MainViewModel shell,
-        PoultryProDbContext dbContext,
-        IPOSCheckoutService checkoutService,
-        IReceiptPdfService receiptPdfService) : base(shell, "Point of Sale", "\uE7BF")
-    {
-        _dbContext = dbContext;
-        _checkoutService = checkoutService;
-        _receiptPdfService = receiptPdfService;
-        AddSelectedProductCommand = new RelayCommand(_ => AddSelectedProduct());
-        RemoveLineCommand = new RelayCommand(parameter => RemoveLine(parameter as CartLineViewModel));
-        ClearCartCommand = new RelayCommand(_ => ClearCart());
-        CheckoutCommand = new AsyncRelayCommand(_ => CheckoutAsync());
-        PreviewReceiptCommand = new AsyncRelayCommand(_ => PreviewReceiptAsync(), _ => _lastInvoiceId.HasValue);
-        RefreshPaymentMethods();
-    }
-
-    public ProductSaleRow? SelectedProduct
-    {
-        get => _selectedProduct;
-        set => SetProperty(ref _selectedProduct, value);
-    }
-
-    public CustomerOption? SelectedCustomer
-    {
-        get => _selectedCustomer;
-        set => SetProperty(ref _selectedCustomer, value);
-    }
-
-    public SaleChannel SelectedSaleChannel
-    {
-        get => _selectedSaleChannel;
-        set
-        {
-            if (SetProperty(ref _selectedSaleChannel, value))
-            {
-                RefreshPaymentMethods();
-            }
-        }
-    }
-
-    public PaymentMethod SelectedPaymentMethod
-    {
-        get => _selectedPaymentMethod;
-        set
-        {
-            if (SetProperty(ref _selectedPaymentMethod, value))
-            {
-                AutoFillPaymentAmounts();
-            }
-        }
-    }
-
-    public decimal Quantity
-    {
-        get => _quantity;
-        set => SetProperty(ref _quantity, value);
-    }
-
-    public decimal CashAmount
-    {
-        get => _cashAmount;
-        set => SetProperty(ref _cashAmount, value);
-    }
-
-    public decimal CardAmount
-    {
-        get => _cardAmount;
-        set => SetProperty(ref _cardAmount, value);
-    }
-
-    public decimal CreditAmount
-    {
-        get => _creditAmount;
-        set => SetProperty(ref _creditAmount, value);
-    }
-
-    public string ManualDueDate
-    {
-        get => _manualDueDate;
-        set => SetProperty(ref _manualDueDate, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public decimal CartTotal => CartLines.Sum(line => line.LineTotal);
-    public string CartTotalText => Money(CartTotal);
-
-    public override async Task LoadAsync()
-    {
-        var products = await _dbContext.Products
-            .Where(product => product.IsActive)
-            .OrderBy(product => product.Name)
-            .ToListAsync();
-        var activeBatches = await _dbContext.Batches
-            .Where(batch => batch.Status == BatchStatus.Active)
-            .OrderBy(batch => batch.ExpiryDate)
-            .ThenBy(batch => batch.PurchaseDate)
-            .ToListAsync();
-
-        Products.ReplaceWith(products.Select(product =>
-        {
-            var productBatches = activeBatches.Where(batch => batch.ProductId == product.ProductId).ToList();
-            var firstBatch = productBatches.FirstOrDefault(batch => batch.RemainingQuantity > 0);
-            return new ProductSaleRow(
-                product.ProductId,
-                firstBatch?.BatchId,
-                product.Name,
-                product.UnitOfMeasure,
-                product.SellingPrice,
-                productBatches.Sum(batch => batch.RemainingQuantity),
-                firstBatch is null ? "No active batch" : firstBatch.BatchId.ToString("N")[..8].ToUpperInvariant());
-        }));
-
-        Customers.ReplaceWith(await _dbContext.Customers
-            .Where(customer => customer.AccountType != AccountType.None)
-            .OrderBy(customer => customer.Name)
-            .Select(customer => new CustomerOption(customer.CustomerId, customer.Name, customer.AccountType.ToString()))
-            .ToListAsync());
-
-        SelectedProduct ??= Products.FirstOrDefault();
-        SelectedCustomer ??= Customers.FirstOrDefault();
-        AutoFillPaymentAmounts();
-    }
-
-    private void AddSelectedProduct()
-    {
-        if (SelectedProduct is null)
-        {
-            Message = "Select a product first.";
-            return;
-        }
-
-        if (!SelectedProduct.BatchId.HasValue)
-        {
-            Message = "Selected product has no active batch.";
-            return;
-        }
-
-        if (Quantity <= 0)
-        {
-            Message = "Quantity must be greater than zero.";
-            return;
-        }
-
-        if (Quantity > SelectedProduct.Stock)
-        {
-            Message = "Quantity exceeds available stock.";
-            return;
-        }
-
-        CartLines.Add(new CartLineViewModel(
-            SelectedProduct.ProductId,
-            SelectedProduct.BatchId.Value,
-            SelectedProduct.ProductName,
-            SelectedProduct.Unit,
-            Quantity,
-            SelectedProduct.Price));
-        RefreshCartTotals();
-        Message = $"{SelectedProduct.ProductName} added.";
-    }
-
-    private void RemoveLine(CartLineViewModel? line)
-    {
-        if (line is null)
-        {
-            return;
-        }
-
-        CartLines.Remove(line);
-        RefreshCartTotals();
-    }
-
-    private void ClearCart()
-    {
-        CartLines.Clear();
-        RefreshCartTotals();
-        Message = "Invoice cleared.";
-    }
-
-    private async Task CheckoutAsync()
-    {
-        if (Shell.CurrentUser is null)
-        {
-            Message = "Sign in before checkout.";
-            return;
-        }
-
-        if (CartLines.Count == 0)
-        {
-            Message = "Add at least one item.";
-            return;
-        }
-
-        var requiresCustomer = SelectedPaymentMethod is PaymentMethod.Credit or PaymentMethod.Mixed;
-        if (requiresCustomer && SelectedCustomer is null)
-        {
-            Message = "Credit and mixed wholesale invoices require a customer.";
-            return;
-        }
-
-        DateTime? dueDate = null;
-        if (requiresCustomer && !string.IsNullOrWhiteSpace(ManualDueDate))
-        {
-            if (!DateTime.TryParse(ManualDueDate, out var parsedDueDate))
-            {
-                Message = "Due date must be a valid date.";
-                return;
-            }
-
-            dueDate = parsedDueDate.Date;
-        }
-
-        try
-        {
-            var result = await _checkoutService.CheckoutAsync(new CheckoutRequest(
-                SelectedSaleChannel,
-                requiresCustomer ? SelectedCustomer?.CustomerId : null,
-                Shell.CurrentUser.UserId,
-                SelectedPaymentMethod,
-                CartLines.Select(line => new CheckoutLineItem(line.ProductId, line.BatchId, line.Quantity, line.UnitPrice, 0m)).ToList(),
-                CashAmount,
-                CardAmount,
-                CreditAmount,
-                dueDate,
-                Notes: "Created from WPF POS"));
-
-            _lastInvoiceId = result.InvoiceId;
-            Message = $"Created {result.InvoiceNumber}. Balance {Money(result.BalanceAmount)}.";
-            ClearCart();
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-
-    private async Task PreviewReceiptAsync()
-    {
-        if (Shell.CurrentUser is null || !_lastInvoiceId.HasValue)
-        {
-            Message = "Create an invoice before previewing a receipt.";
-            return;
-        }
-
-        try
-        {
-            var receipt = await _receiptPdfService.GenerateInvoiceReceiptPdfAsync(
-                new ReceiptPdfRequest(_lastInvoiceId.Value, Shell.CurrentUser.UserId, Shell.CurrentUser.Role));
-            var path = Path.Combine(Path.GetTempPath(), receipt.FileName);
-            await File.WriteAllBytesAsync(path, receipt.PdfBytes);
-            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-            Message = $"Receipt opened: {receipt.InvoiceNumber}.";
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-
-    private void RefreshPaymentMethods()
-    {
-        PaymentMethods.ReplaceWith(_checkoutService.GetAllowedPaymentMethods(SelectedSaleChannel));
-        if (!PaymentMethods.Contains(SelectedPaymentMethod))
-        {
-            SelectedPaymentMethod = PaymentMethods.FirstOrDefault();
-        }
-
-        AutoFillPaymentAmounts();
-    }
-
-    private void RefreshCartTotals()
-    {
-        OnPropertyChanged(nameof(CartTotal));
-        OnPropertyChanged(nameof(CartTotalText));
-        AutoFillPaymentAmounts();
-    }
-
-    private void AutoFillPaymentAmounts()
-    {
-        if (SelectedPaymentMethod == PaymentMethod.Cash)
-        {
-            CashAmount = CartTotal;
-            CardAmount = 0m;
-            CreditAmount = 0m;
-        }
-        else if (SelectedPaymentMethod == PaymentMethod.Card)
-        {
-            CashAmount = 0m;
-            CardAmount = CartTotal;
-            CreditAmount = 0m;
-        }
-        else if (SelectedPaymentMethod == PaymentMethod.Credit)
-        {
-            CashAmount = 0m;
-            CardAmount = 0m;
-            CreditAmount = CartTotal;
-        }
-    }
-}
-
-public sealed class InventoryPageViewModel : PageViewModelBase
-{
-    private readonly PoultryProDbContext _dbContext;
-    private readonly IInventoryService _inventoryService;
-    private ProductStockRow? _selectedProduct;
-    private decimal _newBatchQuantity = 10m;
-    private decimal _newBatchCost;
-    private string _newBatchExpiry = DateTime.Today.AddDays(5).ToString("yyyy-MM-dd");
-    private string _message = "Manual purchases create active batches.";
-
-    public ObservableCollection<ProductStockRow> Products { get; } = [];
-    public ObservableCollection<BatchRow> Batches { get; } = [];
-    public ObservableCollection<string> Alerts { get; } = [];
-    public ICommand RecordBatchCommand { get; }
-
-    public InventoryPageViewModel(
-        MainViewModel shell,
-        PoultryProDbContext dbContext,
-        IInventoryService inventoryService) : base(shell, "Inventory", "\uE8D2")
-    {
-        _dbContext = dbContext;
-        _inventoryService = inventoryService;
-        RecordBatchCommand = new AsyncRelayCommand(_ => RecordBatchAsync());
-    }
-
-    public ProductStockRow? SelectedProduct
-    {
-        get => _selectedProduct;
-        set => SetProperty(ref _selectedProduct, value);
-    }
-
-    public decimal NewBatchQuantity
-    {
-        get => _newBatchQuantity;
-        set => SetProperty(ref _newBatchQuantity, value);
-    }
-
-    public decimal NewBatchCost
-    {
-        get => _newBatchCost;
-        set => SetProperty(ref _newBatchCost, value);
-    }
-
-    public string NewBatchExpiry
-    {
-        get => _newBatchExpiry;
-        set => SetProperty(ref _newBatchExpiry, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public override async Task LoadAsync()
-    {
-        var stock = await _inventoryService.GetProductStockLevelsAsync();
-        Products.ReplaceWith(stock.Select(row => new ProductStockRow(
-            row.ProductId,
-            row.ProductName,
-            row.UnitOfMeasure,
-            row.RemainingQuantity,
-            row.ReorderLevel)));
-
-        var batchData = await _dbContext.Batches
-            .Join(_dbContext.Products, batch => batch.ProductId, product => product.ProductId, (batch, product) => new
-            {
-                batch.BatchId,
-                ProductName = product.Name,
-                batch.RemainingQuantity,
-                product.UnitOfMeasure,
-                batch.CostPrice,
-                batch.ExpiryDate,
-                batch.Status
-            })
-            .OrderBy(row => row.ProductName)
-            .ToListAsync();
-        var batches = batchData.Select(row => new BatchRow(
-            row.BatchId.ToString("N")[..8].ToUpperInvariant(),
-            row.ProductName,
-            $"{row.RemainingQuantity:N2} {row.UnitOfMeasure}",
-            Money(row.CostPrice),
-            row.ExpiryDate.HasValue ? row.ExpiryDate.Value.ToString("yyyy-MM-dd") : "-",
-            row.Status.ToString()));
-        Batches.ReplaceWith(batches);
-
-        var alerts = await _inventoryService.GetInventoryAlertsAsync(DateOnly.FromDateTime(DateTime.Today), 3);
-        Alerts.ReplaceWith(alerts.Select(alert => alert.Message));
-        SelectedProduct ??= Products.FirstOrDefault();
-    }
-
-    private async Task RecordBatchAsync()
-    {
-        if (Shell.CurrentUser is null)
-        {
-            Message = "Sign in before recording inventory.";
-            return;
-        }
-
-        if (SelectedProduct is null)
-        {
-            Message = "Select a product first.";
-            return;
-        }
-
-        if (!DateTime.TryParse(NewBatchExpiry, out var expiry))
-        {
-            Message = "Expiry date must be valid.";
-            return;
-        }
-
-        try
-        {
-            await _inventoryService.RecordManualBatchPurchaseAsync(new ManualBatchPurchaseRequest(
-                SelectedProduct.ProductId,
-                DateTime.Today,
-                expiry,
-                NewBatchQuantity,
-                NewBatchCost,
-                Shell.CurrentUser.UserId,
-                Shell.CurrentUser.Role));
-            Message = "Manual purchase batch recorded.";
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-}
-
-public sealed class CreditorsPageViewModel : PageViewModelBase
-{
-    private readonly PoultryProDbContext _dbContext;
-    private readonly ICustomerAccountService _customerAccountService;
-    private CreditorInvoiceRow? _selectedInvoice;
-    private decimal _paymentAmount;
-    private PaymentMethod _paymentMethod = PaymentMethod.Cash;
-    private string _message = "Select an outstanding invoice to record a payment.";
-
-    public ObservableCollection<CreditorInvoiceRow> OutstandingInvoices { get; } = [];
-    public ObservableCollection<DebtorBucketRow> DebtorBuckets { get; } = [];
-    public ObservableCollection<PaymentMethod> PaymentMethods { get; } = [PaymentMethod.Cash, PaymentMethod.Card];
-    public ICommand RecordPaymentCommand { get; }
-
-    public CreditorsPageViewModel(
-        MainViewModel shell,
-        PoultryProDbContext dbContext,
-        ICustomerAccountService customerAccountService) : base(shell, "Creditors", "\uE716")
-    {
-        _dbContext = dbContext;
-        _customerAccountService = customerAccountService;
-        RecordPaymentCommand = new AsyncRelayCommand(_ => RecordPaymentAsync());
-    }
-
-    public CreditorInvoiceRow? SelectedInvoice
-    {
-        get => _selectedInvoice;
-        set
-        {
-            if (SetProperty(ref _selectedInvoice, value) && value is not null)
-            {
-                PaymentAmount = value.BalanceAmount;
-            }
-        }
-    }
-
-    public decimal PaymentAmount
-    {
-        get => _paymentAmount;
-        set => SetProperty(ref _paymentAmount, value);
-    }
-
-    public PaymentMethod PaymentMethod
-    {
-        get => _paymentMethod;
-        set => SetProperty(ref _paymentMethod, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public override async Task LoadAsync()
-    {
-        var outstanding = await _dbContext.Invoices
-            .Where(invoice => invoice.CustomerId.HasValue && invoice.PaymentStatus != PaymentStatus.Void && invoice.BalanceAmount > 0)
-            .Join(_dbContext.Customers, invoice => invoice.CustomerId, customer => customer.CustomerId, (invoice, customer) => new CreditorInvoiceRow(
-                invoice.InvoiceId,
-                customer.CustomerId,
-                customer.Name,
-                customer.AccountType.ToString(),
-                invoice.InvoiceNumber,
-                invoice.DueDate.HasValue ? invoice.DueDate.Value.ToString("yyyy-MM-dd") : "-",
-                invoice.BalanceAmount,
-                Money(invoice.BalanceAmount),
-                invoice.PaymentStatus.ToString()))
-            .OrderBy(row => row.DueDate)
-            .ToListAsync();
-
-        OutstandingInvoices.ReplaceWith(outstanding);
-        SelectedInvoice ??= OutstandingInvoices.FirstOrDefault();
-
-        var aging = await _customerAccountService.GenerateDebtorAgingReportAsync(DateOnly.FromDateTime(DateTime.Today));
-        DebtorBuckets.ReplaceWith(aging.Buckets.Select(bucket => new DebtorBucketRow(bucket.Name, Money(bucket.OutstandingBalance), bucket.Invoices.Count)));
-    }
-
-    private async Task RecordPaymentAsync()
-    {
-        if (Shell.CurrentUser is null)
-        {
-            Message = "Sign in before recording payments.";
-            return;
-        }
-
-        if (SelectedInvoice is null)
-        {
-            Message = "Select an invoice first.";
-            return;
-        }
-
-        try
-        {
-            var result = await _customerAccountService.RecordAccountPaymentAsync(new AccountPaymentRequest(
-                SelectedInvoice.CustomerId,
-                SelectedInvoice.InvoiceId,
-                PaymentAmount,
-                PaymentMethod,
-                "WPF payment",
-                Shell.CurrentUser.UserId,
-                Shell.CurrentUser.Role));
-            Message = $"Applied {Money(result.AmountApplied)}. Remaining {Money(result.RemainingOutstanding)}.";
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-}
-
-public sealed class ReportsPageViewModel : PageViewModelBase
-{
-    private readonly IReportingService _reportingService;
-    private DateTime _fromDate = DateTime.Today;
-    private DateTime _toDate = DateTime.Today;
-    private string _message = "Run a report to refresh operational figures.";
-
-    public ObservableCollection<MetricCard> Metrics { get; } = [];
-    public ObservableCollection<StockReportRow> StockRows { get; } = [];
-    public ObservableCollection<BatchMovementReportRow> BatchRows { get; } = [];
-    public ObservableCollection<AuditReportRow> AuditRows { get; } = [];
-    public ICommand RunReportCommand { get; }
-
-    public ReportsPageViewModel(
-        MainViewModel shell,
-        IReportingService reportingService) : base(shell, "Reports", "\uE9D2")
-    {
-        _reportingService = reportingService;
-        RunReportCommand = new AsyncRelayCommand(_ => LoadAsync());
-    }
-
-    public DateTime FromDate
-    {
-        get => _fromDate;
-        set => SetProperty(ref _fromDate, value);
-    }
-
-    public DateTime ToDate
-    {
-        get => _toDate;
-        set => SetProperty(ref _toDate, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public override async Task LoadAsync()
-    {
-        if (Shell.CurrentUser is not { Role: UserRole.Admin } user)
-        {
-            Message = "Reports require Admin access.";
-            return;
-        }
-
-        try
-        {
-            var result = await _reportingService.GenerateOperationalReportAsync(new OperationalReportRequest(
-                DateOnly.FromDateTime(FromDate),
-                DateOnly.FromDateTime(ToDate),
-                user.UserId,
-                user.Role));
-
-            Metrics.ReplaceWith(
-                new MetricCard("Total Sales", Money(result.Sales.TotalSales), $"{result.Sales.InvoiceCount} invoices", "\uE8C7"),
-                new MetricCard("Gross Profit", Money(result.Profit.GrossProfit), $"COGS {Money(result.Profit.CostOfGoodsSold)}", "\uE9D2"),
-                new MetricCard("Wastage", Money(result.Wastage.TotalWastageValue), $"{result.Wastage.RecordCount} records", "\uE74D"),
-                new MetricCard("Refunds", Money(result.SalesReturns.TotalRefundAmount), $"{result.SalesReturns.ReturnCount} returns", "\uE8A7"));
-
-            StockRows.ReplaceWith(result.StockOnHand.Select(row => new StockReportRow(
-                row.ProductName,
-                $"{row.RemainingQuantity:N2} {row.UnitOfMeasure}",
-                $"{row.ReorderLevel:N2} {row.UnitOfMeasure}")));
-
-            BatchRows.ReplaceWith(result.BatchMovements.Select(row => new BatchMovementReportRow(
-                row.ProductName,
-                row.PurchasedQuantity,
-                row.SoldQuantity,
-                row.WastedQuantity,
-                row.RemainingQuantity)));
-
-            AuditRows.ReplaceWith(result.AuditActivity.Take(10).Select(row => new AuditReportRow(
-                row.Timestamp.ToLocalTime().ToString("HH:mm"),
-                row.Module,
-                row.Action)));
-
-            Message = "Report generated from local SQLite.";
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-}
-
-public sealed class SettingsPageViewModel : PageViewModelBase
-{
-    private readonly ISystemSettingsService _settingsService;
-    private readonly IDatabaseManagementService _databaseManagementService;
-    private string _settingKey = "receipt.companyName";
-    private string _settingValue = "Blue Birds Poultry";
-    private string _message = "Admin-only system settings.";
-
-    public ObservableCollection<SystemSettingRow> Settings { get; } = [];
-    public ObservableCollection<DatabaseActionRow> DatabaseRows { get; } = [];
-    public ICommand SaveSettingCommand { get; }
-    public ICommand TestSqliteCommand { get; }
-    public ICommand BackupDatabaseCommand { get; }
-
-    public SettingsPageViewModel(
-        MainViewModel shell,
-        ISystemSettingsService settingsService,
-        IDatabaseManagementService databaseManagementService) : base(shell, "Settings", "\uE713")
-    {
-        _settingsService = settingsService;
-        _databaseManagementService = databaseManagementService;
-        SaveSettingCommand = new AsyncRelayCommand(_ => SaveSettingAsync());
-        TestSqliteCommand = new AsyncRelayCommand(_ => TestSqliteAsync());
-        BackupDatabaseCommand = new AsyncRelayCommand(_ => BackupDatabaseAsync());
-    }
-
-    public string SettingKey
-    {
-        get => _settingKey;
-        set => SetProperty(ref _settingKey, value);
-    }
-
-    public string SettingValue
-    {
-        get => _settingValue;
-        set => SetProperty(ref _settingValue, value);
-    }
-
-    public string Message
-    {
-        get => _message;
-        set => SetProperty(ref _message, value);
-    }
-
-    public override async Task LoadAsync()
-    {
-        if (Shell.CurrentUser is not { Role: UserRole.Admin } user)
-        {
-            Message = "Settings require Admin access.";
-            return;
-        }
-
-        var settings = await _settingsService.GetSettingsAsync(new SystemSettingsQuery(user.UserId, user.Role));
-        Settings.ReplaceWith(settings.Select(setting => new SystemSettingRow(
-            setting.Key,
-            setting.IsSecret ? "********" : setting.Value,
-            setting.ValueType.ToString(),
-            setting.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))));
-
-        var queue = await _databaseManagementService.GetSyncQueueStatusAsync(new AdminOperationRequest(user.UserId, user.Role));
-        DatabaseRows.ReplaceWith(
-            new DatabaseActionRow("SQLite", "Primary offline database", "Ready"),
-            new DatabaseActionRow("Online Queue", $"Pending {queue.Pending}, failed {queue.Failed}", "Local first"),
-            new DatabaseActionRow("Backups", "Copies SQLite database to configured backup folder", "Manual"));
-    }
-
-    private async Task SaveSettingAsync()
-    {
-        if (Shell.CurrentUser is not { Role: UserRole.Admin } user)
-        {
-            Message = "Settings require Admin access.";
-            return;
-        }
-
-        try
-        {
-            await _settingsService.UpdateSettingsAsync(new UpdateSystemSettingsRequest(
-                user.UserId,
-                user.Role,
-                [new SystemSettingUpdate(SettingKey, SettingValue, SystemSettingValueType.String)]));
-            Message = "Setting saved and audited.";
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Message = ex.Message;
-        }
-    }
-
-    private async Task TestSqliteAsync()
-    {
-        if (Shell.CurrentUser is not { Role: UserRole.Admin } user)
-        {
-            return;
-        }
-
-        var result = await _databaseManagementService.TestSqliteConnectionAsync(new AdminOperationRequest(user.UserId, user.Role));
-        Message = result.Message;
-        await LoadAsync();
-    }
-
-    private async Task BackupDatabaseAsync()
-    {
-        if (Shell.CurrentUser is not { Role: UserRole.Admin } user)
-        {
-            return;
-        }
-
-        var result = await _databaseManagementService.BackupSqliteDatabaseAsync(new DatabaseBackupRequest(user.UserId, user.Role));
-        Message = result.Succeeded ? $"Backup created: {result.BackupPath}" : result.Message;
-        await LoadAsync();
-    }
-}
-
-public sealed record MetricCard(string Label, string Value, string Detail, string Icon);
-public sealed record RecentInvoiceRow(string InvoiceNumber, string Channel, string Amount, string Status);
-public sealed record QueueStatusRow(string Status, int Count);
-public sealed record ProductSaleRow(Guid ProductId, Guid? BatchId, string ProductName, string Unit, decimal Price, decimal Stock, string BatchReference)
-{
-    public string PriceText => Money(Price);
-    public string StockText => $"{Stock:N2} {Unit}";
-}
-
-public sealed record CustomerOption(Guid CustomerId, string Name, string AccountType);
-public sealed record CartLineViewModel(Guid ProductId, Guid BatchId, string ProductName, string Unit, decimal Quantity, decimal UnitPrice)
-{
-    public decimal LineTotal => Quantity * UnitPrice;
-    public string QuantityText => $"{Quantity:N2} {Unit}";
-    public string UnitPriceText => Money(UnitPrice);
-    public string LineTotalText => Money(LineTotal);
-}
-
-public sealed record ProductStockRow(Guid ProductId, string ProductName, string Unit, decimal RemainingQuantity, decimal ReorderLevel)
-{
-    public string RemainingText => $"{RemainingQuantity:N2} {Unit}";
-    public string ReorderText => $"{ReorderLevel:N2} {Unit}";
-}
-
-public sealed record BatchRow(string Batch, string ProductName, string Remaining, string Cost, string ExpiryDate, string Status);
-public sealed record CreditorInvoiceRow(Guid InvoiceId, Guid CustomerId, string CustomerName, string AccountType, string InvoiceNumber, string DueDate, decimal BalanceAmount, string BalanceText, string Status);
-public sealed record DebtorBucketRow(string Bucket, string Amount, int InvoiceCount);
-public sealed record StockReportRow(string ProductName, string Remaining, string ReorderLevel);
-public sealed record BatchMovementReportRow(string ProductName, decimal Purchased, decimal Sold, decimal Wasted, decimal Remaining);
-public sealed record AuditReportRow(string Time, string Module, string Action);
-public sealed record SystemSettingRow(string Key, string Value, string Type, string UpdatedAt);
-public sealed record DatabaseActionRow(string Name, string Detail, string Status);
-
-internal static class CollectionExtensions
-{
-    public static void ReplaceWith<T>(this ObservableCollection<T> collection, params T[] items)
-    {
-        collection.Clear();
-        foreach (var item in items)
-        {
-            collection.Add(item);
-        }
-    }
-
-    public static void ReplaceWith<T>(this ObservableCollection<T> collection, IEnumerable<T> items)
-    {
-        collection.Clear();
-        foreach (var item in items)
-        {
-            collection.Add(item);
-        }
-    }
-}
-
-internal static class Formatters
-{
-    public static string Money(decimal amount)
-    {
-        return $"Rs. {amount:N2}";
     }
 }

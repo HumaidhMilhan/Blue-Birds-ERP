@@ -1,0 +1,210 @@
+<UserControl x:Class="BlueBirdsERP.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+
+            <!-- Loading / Error -->
+            <TextBlock Text="Loading..."
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,12" />
+            <Border Background="{StaticResource ErrorContainerBrush}"
+                    CornerRadius="4" Padding="10,6"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
+                    Margin="0,0,0,12">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource OnErrorContainerBrush}" />
+            </Border>
+            <Border Background="{StaticResource SuccessContainerBrush}"
+                    CornerRadius="4" Padding="10,6"
+                    Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"
+                    Margin="0,0,0,12">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" />
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Profile Section (visible to all) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Profile" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Username" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ProfileUsername}" FontSize="15" Margin="0,0,0,12" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Role" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                        <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource SurfaceContainerBrush}"
+                                CornerRadius="9999" Padding="12,4" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding ProfileRole}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" />
+                        </Border>
+                    </Grid>
+                    <!-- TODO: Add IAuthenticationService.ChangePasswordAsync backend -->
+                    <Button Content="Change Password"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Padding="14,8" Margin="0,16,0,0"
+                            IsEnabled="False"
+                            ToolTip="Password change not yet implemented in backend" />
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- System Settings (Admin only) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20"
+                    Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="System Settings" Style="{StaticResource SectionHeaderStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="COMPANY NAME" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ReceiptCompanyName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,12" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="RECEIPT HEADER" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ReceiptHeader, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,12" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="RECEIPT FOOTER" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ReceiptFooter, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,12" />
+                    </Grid>
+                    <Button Content="Save Settings"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding SaveSettingsCommand}"
+                            Padding="16,8" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- User Management (Admin only) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20"
+                    Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="User Management" Style="{StaticResource SectionHeaderStyle}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBox Text="{Binding NewCashierUsername, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputTextBoxStyle}"
+                                 Width="200" Margin="0,0,8,0" />
+                        <Button Content="Create Cashier"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding CreateCashierCommand}"
+                                Padding="14,8" />
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding Cashiers}" Style="{StaticResource DataGridStyle}" MaxHeight="200">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}" />
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="*" />
+                            <DataGridTextColumn Header="Status" Width="80">
+                                <DataGridTextColumn.Binding>
+                                    <Binding Path="IsActive" />
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Database (Admin only) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20"
+                    Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Database" Style="{StaticResource SectionHeaderStyle}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <Button Content="Test Connection"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding TestConnectionCommand}"
+                                Padding="14,8" />
+                        <Button Content="Backup Database"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding BackupDatabaseCommand}"
+                                Padding="14,8" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding DbStatusMessage}" FontSize="13"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}" Margin="0,0,0,8" />
+                    <TextBlock Text="{Binding BackupPath}" FontSize="12"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Audit Log (Admin only) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20"
+                    Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Audit Log" Style="{StaticResource SectionHeaderStyle}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="FROM" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <DatePicker SelectedDate="{Binding AuditFromDate, Mode=TwoWay}" Width="140" Margin="0,0,12,0" />
+                        <TextBlock Text="TO" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <DatePicker SelectedDate="{Binding AuditToDate, Mode=TwoWay}" Width="140" Margin="0,0,12,0" />
+                        <Button Content="Search"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding SearchAuditLogsCommand}"
+                                Padding="14,8" />
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding AuditLogs}" Style="{StaticResource DataGridStyle}" MaxHeight="300">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}" />
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm'}" Width="140" />
+                            <DataGridTextColumn Header="User" Binding="{Binding UserId}" Width="100" />
+                            <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="120" />
+                            <DataGridTextColumn Header="Module" Binding="{Binding Module}" Width="100" />
+                            <DataGridTextColumn Header="Target" Binding="{Binding TargetEntity}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- ============================================================ -->
+            <!-- Notification Templates (Admin only) -->
+            <!-- ============================================================ -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="20"
+                    Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Notification Templates" Style="{StaticResource SectionHeaderStyle}" />
+                    <TextBlock Text="PAYMENT REMINDER" Style="{StaticResource LabelStyle}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding PaymentReminderTemplate, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource InputTextBoxStyle}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="60" Margin="0,0,0,12" />
+                    <TextBlock Text="OVERDUE ALERT" Style="{StaticResource LabelStyle}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding OverdueAlertTemplate, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource InputTextBoxStyle}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="60" Margin="0,0,0,12" />
+                    <TextBlock Text="OWNER DAILY REPORT" Style="{StaticResource LabelStyle}" Margin="0,0,0,4" />
+                    <TextBox Text="{Binding OwnerDailyReportTemplate, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource InputTextBoxStyle}"
+                             AcceptsReturn="True" TextWrapping="Wrap"
+                             Height="60" Margin="0,0,0,12" />
+                    <Button Content="Save Templates"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding SaveTemplatesCommand}"
+                            Padding="16,8" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

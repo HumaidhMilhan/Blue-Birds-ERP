@@ -1,0 +1,208 @@
+<UserControl x:Class="BlueBirdsERP.Desktop.Views.CreditorsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header with action buttons -->
+        <Border Grid.Row="0" Margin="0,0,0,16">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="+ Business Account"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding CreateBusinessAccountCommand}"
+                            Padding="14,8" FontSize="13" />
+                    <Button Content="+ Walk-in Creditor"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding CreateOneTimeCreditorCommand}"
+                            Padding="14,8" FontSize="13" Margin="8,0,0,0" />
+                </StackPanel>
+                <TextBlock Text="Creditor Accounts" Style="{StaticResource PageHeaderStyle}"
+                           VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <!-- Loading / Error -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock Text="Loading..."
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                       Foreground="{StaticResource PrimaryBrush}" />
+            <Border Background="{StaticResource ErrorContainerBrush}"
+                    CornerRadius="4" Padding="10,6"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource OnErrorContainerBrush}" FontSize="13" />
+            </Border>
+        </StackPanel>
+
+        <!-- Main content -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="380" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Debtor aging buckets -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="DEBTOR AGING" Style="{StaticResource LabelStyle}"
+                               Margin="16,16,16,12" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding DebtorBuckets}" Margin="16,0,16,16">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="12">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
+                                                           Foreground="{StaticResource OnSurfaceBrush}" />
+                                                <TextBlock DockPanel.Dock="Right"
+                                                           Text="{Binding OutstandingBalance, Converter={StaticResource CurrencyFormat}}"
+                                                           FontWeight="Bold" HorizontalAlignment="Right"
+                                                           Foreground="{StaticResource ErrorBrush}" />
+                                            </DockPanel>
+                                            <ItemsControl ItemsSource="{Binding Invoices}" Margin="0,8,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="8,4" Margin="0,2"
+                                                                Background="{StaticResource SurfaceContainerBrush}"
+                                                                CornerRadius="4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding InvoiceNumber}" FontSize="12" />
+                                                                <TextBlock Grid.Column="1" Text="{Binding CustomerName}" FontSize="12"
+                                                                           Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                                                <TextBlock Grid.Column="2" Text="{Binding BalanceAmount, Converter={StaticResource CurrencyFormat}}"
+                                                                           FontSize="12" FontWeight="SemiBold" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: Selected customer detail -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="CUSTOMER DETAIL" Style="{StaticResource LabelStyle}" Margin="0,0,0,16" />
+
+                    <!-- Placeholder when no selection -->
+                    <Border Visibility="{Binding HasSelectedCustomer, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
+                            Padding="20" HorizontalAlignment="Stretch">
+                        <TextBlock Text="Select a customer invoice to view details"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   HorizontalAlignment="Center" FontStyle="Italic" />
+                    </Border>
+
+                    <!-- Customer info (shown when selected) -->
+                    <StackPanel Visibility="{Binding HasSelectedCustomer, Converter={StaticResource BoolToVis}}">
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedCustomer.Name}" Margin="8,0,0,8" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Type" Style="{StaticResource LabelStyle}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedCustomer.AccountType}" Margin="8,0,0,8" />
+                        </Grid>
+
+                        <!-- Credit summary -->
+                        <Border Visibility="{Binding HasCreditSummary, Converter={StaticResource BoolToVis}}"
+                                Background="{StaticResource SurfaceContainerBrush}"
+                                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+                                    <TextBlock Text="OUTSTANDING" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="{Binding CreditSummary.OutstandingBalance, Converter={StaticResource CurrencyFormat}}"
+                                               FontSize="18" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="CREDIT LIMIT" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="{Binding CreditSummary.CreditLimit, Converter={StaticResource CurrencyFormat}}"
+                                               FontSize="18" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
+                                    <TextBlock Text="AVAILABLE" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="{Binding CreditSummary.AvailableCredit, Converter={StaticResource CurrencyFormat}}"
+                                               FontSize="16" Foreground="{StaticResource SuccessBrush}" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
+                                    <TextBlock Text="OVERDUE" Style="{StaticResource LabelStyle}" />
+                                    <TextBlock Text="{Binding CreditSummary.OverdueInvoiceCount}"
+                                               FontSize="16" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Action buttons -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                            <Button Content="Record Payment"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding RecordPaymentCommand}"
+                                    Padding="14,8" FontSize="13" />
+                            <Button Content="Edit Terms"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding EditTermsCommand}"
+                                    Padding="14,8" FontSize="13" Margin="8,0,0,0" />
+                        </StackPanel>
+
+                        <!-- Payment history -->
+                        <TextBlock Text="PAYMENT HISTORY" Style="{StaticResource LabelStyle}" Margin="0,0,0,8" />
+                        <DataGrid ItemsSource="{Binding PaymentHistory}"
+                                  Style="{StaticResource DataGridStyle}"
+                                  MaxHeight="200">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}" />
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Invoice" Binding="{Binding InvoiceNumber}" Width="*" />
+                                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='yyyy-MM-dd'}" Width="100" />
+                                <DataGridTextColumn Header="Amount" Binding="{Binding Amount, Converter={StaticResource CurrencyFormat}}" Width="110" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="3" Margin="0,16,0,0" Padding="12,8"
+                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="4">
+            <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                       Foreground="{StaticResource OnSurfaceVariantBrush}" />
+        </Border>
+    </Grid>
+</UserControl>

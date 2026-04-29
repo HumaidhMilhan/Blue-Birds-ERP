@@ -1,0 +1,179 @@
+<UserControl x:Class="BlueBirdsERP.Desktop.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel>
+            <!-- Date range controls -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="FROM" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <DatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" Width="160" Margin="0,0,16,0" />
+                    <TextBlock Text="TO" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <DatePicker SelectedDate="{Binding ToDate, Mode=TwoWay}" Width="160" Margin="0,0,16,0" />
+                    <Button Content="Refresh"
+                            Command="{Binding LoadReportCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Padding="20,8" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{StaticResource OnSurfaceVariantBrush}"
+                               VerticalAlignment="Center"
+                               Margin="16,0,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Loading indicator -->
+            <TextBlock Text="Loading report..."
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"
+                       Foreground="{StaticResource PrimaryBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,16" />
+
+            <!-- Error -->
+            <Border Background="{StaticResource ErrorContainerBrush}"
+                    CornerRadius="4" Padding="12,8"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
+                    Margin="0,0,0,16">
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="{StaticResource OnErrorContainerBrush}" />
+            </Border>
+
+            <!-- KPI Cards Row -->
+            <UniformGrid Rows="1" Columns="4" Margin="0,0,0,20">
+                <Border Style="{StaticResource KpiCardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="TOTAL SALES" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="{Binding TotalSales, StringFormat='Rs. {0:N2}'}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource OnSurfaceBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource KpiCardStyle}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="GROSS PROFIT" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="{Binding GrossProfit, StringFormat='Rs. {0:N2}'}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource KpiCardStyle}" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="WASTAGE VALUE" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="{Binding WastageValue, StringFormat='Rs. {0:N2}'}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource KpiCardStyle}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="INVOICES" Style="{StaticResource LabelStyle}" />
+                        <TextBlock Text="{Binding InvoiceCount}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource OnSurfaceBrush}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Two-column layout -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left: Sales Breakdown -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Sales Breakdown" Style="{StaticResource SectionHeaderStyle}" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="8" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Retail Sales" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RetailSales, StringFormat='Rs. {0:N2}'}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Wholesale Sales" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding WholesaleSales, StringFormat='Rs. {0:N2}'}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Cash Payments" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CashPayments, StringFormat='Rs. {0:N2}'}" FontWeight="SemiBold" />
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Card Payments" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CardPayments, StringFormat='Rs. {0:N2}'}" FontWeight="SemiBold" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Right: Low Stock Alerts -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Low Stock Alerts" Style="{StaticResource SectionHeaderStyle}" />
+                        <ItemsControl ItemsSource="{Binding LowStockItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource WarningContainerBrush}"
+                                            CornerRadius="4" Padding="12,8" Margin="0,0,0,4">
+                                        <TextBlock Foreground="{StaticResource OnSurfaceBrush}" FontSize="13">
+                                            <Run Text="{Binding ProductName, Mode=OneWay}" FontWeight="SemiBold" />
+                                            <Run Text=" — " />
+                                            <Run Text="{Binding RemainingQuantity, Mode=OneWay, StringFormat='{}{0:N1}'}" />
+                                            <Run Text=" " />
+                                            <Run Text="{Binding UnitOfMeasure, Mode=OneWay}" />
+                                            <Run Text=" (reorder: " Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                            <Run Text="{Binding ReorderLevel, Mode=OneWay, StringFormat='{}{0:N1}'}" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                            <Run Text=")" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No low stock items"
+                                   Visibility="{Binding LowStockItems.Count, FallbackValue=0, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   FontStyle="Italic" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Debtor Aging Table -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Debtor Aging" Style="{StaticResource SectionHeaderStyle}" />
+                    <ItemsControl ItemsSource="{Binding DebtorBuckets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="12">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15" />
+                                        <TextBlock Foreground="{StaticResource OnSurfaceVariantBrush}" FontSize="13">
+                                            <Run Text="Outstanding: Rs. " />
+                                            <Run Text="{Binding OutstandingBalance, StringFormat='{}{0:N2}'}" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}" />
+                                        </TextBlock>
+                                        <ItemsControl ItemsSource="{Binding Invoices}" Margin="0,8,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,2,0,2">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding InvoiceNumber}" FontSize="12" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding CustomerName}" FontSize="12" Margin="16,0" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                                        <TextBlock Grid.Column="2" Text="{Binding BalanceAmount, StringFormat='Rs. {0:N2}'}" FontSize="12" FontWeight="SemiBold" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,231 @@
+<UserControl x:Class="BlueBirdsERP.Desktop.Views.PosCheckoutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:BlueBirdsERP.Desktop.Controls">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Top bar: sale channel + customer -->
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,16" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="CHANNEL" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding SaleChannels}"
+                          SelectedItem="{Binding SelectedSaleChannel}"
+                          Style="{StaticResource InputComboBoxStyle}"
+                          Margin="0,0,0,0" />
+
+                <TextBlock Grid.Column="3" Text="CUSTOMER" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" />
+                <TextBox Grid.Column="4"
+                         Text="{Binding CustomerSearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource InputTextBoxStyle}"
+                         Margin="8,0,8,0" />
+                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                    <Button Content="Search"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding SearchCustomerCommand}"
+                            Padding="12,6"
+                            FontSize="12" />
+                    <Button Content="Clear"
+                            Command="{Binding ClearCustomerCommand}"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Margin="4,0,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main content: line items + order summary -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: line items + credit panel -->
+            <DockPanel Grid.Column="0">
+                <!-- Action buttons -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,12">
+                    <Button Content="+ Add Item"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding AddItemCommand}"
+                            Padding="16,8"
+                            FontSize="13" />
+                    <Button Content="Remove Selected"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding RemoveItemCommand}"
+                            CommandParameter="{Binding SelectedLineItem}"
+                            Padding="12,8"
+                            FontSize="13"
+                            Margin="8,0,0,0" />
+                </StackPanel>
+
+                <!-- Credit panel -->
+                <controls:CreditPanel DockPanel.Dock="Bottom"
+                                      DataContext="{Binding}" />
+
+                <!-- Line items grid -->
+                <Border Style="{StaticResource CardStyle}" Padding="0">
+                    <DataGrid ItemsSource="{Binding LineItems}"
+                              SelectedItem="{Binding SelectedLineItem}"
+                              Style="{StaticResource DataGridStyle}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}" />
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchReference}" Width="100" />
+                            <DataGridTextColumn Header="Qty" Binding="{Binding DisplayQuantity}" Width="80" />
+                            <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice, Converter={StaticResource CurrencyFormat}}" Width="110" />
+                            <DataGridTextColumn Header="Discount" Binding="{Binding DiscountAmount, Converter={StaticResource CurrencyFormat}}" Width="100" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, Converter={StaticResource CurrencyFormat}}" Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </DockPanel>
+
+            <!-- Right: order summary + payment -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="20">
+                <DockPanel>
+                    <!-- Complete/New Sale buttons at bottom -->
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <Button x:Name="CompleteButton"
+                                Content="Complete Sale"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding CompleteSaleCommand}"
+                                FontSize="16"
+                                Padding="20,12"
+                                Margin="0,16,0,0" />
+                        <Button Content="New Sale"
+                                Command="{Binding NewSaleCommand}"
+                                Style="{StaticResource GhostButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Padding="8,8"
+                                Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- Receipt info -->
+                    <Border DockPanel.Dock="Bottom"
+                            Visibility="{Binding HasReceipt, Converter={StaticResource BoolToVis}}"
+                            Background="{StaticResource SuccessContainerBrush}"
+                            CornerRadius="4"
+                            Padding="12"
+                            Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Sale Complete!" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" />
+                            <TextBlock Text="{Binding LastInvoiceNumber}" FontSize="12" Margin="0,4,0,0"
+                                       Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Payment method -->
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+                        <TextBlock Text="PAYMENT METHOD" Style="{StaticResource LabelStyle}" />
+                        <RadioButton Content="Cash" IsChecked="True"
+                                     Checked="PaymentCash_Checked"
+                                     Margin="0,4,0,0"
+                                     Foreground="{StaticResource OnSurfaceBrush}" />
+                        <RadioButton Content="Card"
+                                     Checked="PaymentCard_Checked"
+                                     Margin="0,4,0,0"
+                                     Foreground="{StaticResource OnSurfaceBrush}" />
+                        <RadioButton Content="Credit"
+                                     Checked="PaymentCredit_Checked"
+                                     Margin="0,4,0,0"
+                                     Foreground="{StaticResource OnSurfaceBrush}" />
+                        <RadioButton Content="Mixed"
+                                     Checked="PaymentMixed_Checked"
+                                     Margin="0,4,0,0"
+                                     Foreground="{StaticResource OnSurfaceBrush}" />
+
+                        <!-- Mixed payment fields -->
+                        <StackPanel Visibility="{Binding IsCreditPayment, Converter={StaticResource BoolToVis}}"
+                                    Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Cash:" Width="60" VerticalAlignment="Center"
+                                           Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                <TextBox Text="{Binding CashAmount, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="120"
+                                         Style="{StaticResource InputTextBoxStyle}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Card:" Width="60" VerticalAlignment="Center"
+                                           Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                                <TextBox Text="{Binding CardAmount, UpdateSourceTrigger=PropertyChanged}"
+                                         Width="120"
+                                         Style="{StaticResource InputTextBoxStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Due date for credit -->
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0"
+                                    Visibility="{Binding IsCreditPayment, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Due Date:" Width="80" VerticalAlignment="Center"
+                                       Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <DatePicker SelectedDate="{Binding DueDate}" Width="160" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Totals -->
+                    <StackPanel>
+                        <TextBlock Text="ORDER SUMMARY" Style="{StaticResource LabelStyle}" Margin="0,0,0,16" />
+
+                        <DockPanel Margin="0,0,0,8">
+                            <TextBlock Text="Subtotal" DockPanel.Dock="Left" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Text="{Binding Subtotal, Converter={StaticResource CurrencyFormat}}" HorizontalAlignment="Right" />
+                        </DockPanel>
+
+                        <DockPanel Margin="0,0,0,8">
+                            <TextBlock Text="Discount" DockPanel.Dock="Left" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Text="{Binding DiscountTotal, Converter={StaticResource CurrencyFormat}}" HorizontalAlignment="Right" />
+                        </DockPanel>
+
+                        <Separator Margin="0,4,0,8"
+                                   Background="{StaticResource OutlineVariantBrush}" />
+
+                        <DockPanel Margin="0,0,0,12">
+                            <TextBlock Text="Grand Total" FontWeight="Bold" FontSize="18" DockPanel.Dock="Left"
+                                       Foreground="{StaticResource OnSurfaceBrush}" />
+                            <TextBlock Text="{Binding GrandTotal, Converter={StaticResource CurrencyFormat}}" FontWeight="Bold" FontSize="18"
+                                       HorizontalAlignment="Right" Foreground="{StaticResource PrimaryBrush}" />
+                        </DockPanel>
+
+                        <DockPanel Margin="0,0,0,4">
+                            <TextBlock Text="Paid" DockPanel.Dock="Left" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Text="{Binding PaidAmount, Converter={StaticResource CurrencyFormat}}" HorizontalAlignment="Right"
+                                       Foreground="{StaticResource SuccessBrush}" />
+                        </DockPanel>
+
+                        <DockPanel>
+                            <TextBlock Text="Balance" DockPanel.Dock="Left" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                            <TextBlock Text="{Binding BalanceAmount, Converter={StaticResource CurrencyFormat}}" HorizontalAlignment="Right"
+                                       Foreground="{StaticResource ErrorBrush}" />
+                        </DockPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Margin="0,16,0,0" Padding="12,8"
+                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="4">
+            <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                       Foreground="{StaticResource OnSurfaceVariantBrush}" />
+        </Border>
+    </Grid>
+</UserControl>

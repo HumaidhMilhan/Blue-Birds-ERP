@@ -1,26 +1,18 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BlueBirdsERP.Desktop.ViewModels;
 
-public abstract class ViewModelBase : INotifyPropertyChanged
+public partial class ViewModelBase : ObservableObject
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _errorMessage = string.Empty;
 
-    protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    public bool HasStatus => !string.IsNullOrEmpty(StatusMessage);
 
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
+    partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
+    partial void OnStatusMessageChanged(string value) => OnPropertyChanged(nameof(HasStatus));
 
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+    public virtual Task LoadAsync() => Task.CompletedTask;
 }
