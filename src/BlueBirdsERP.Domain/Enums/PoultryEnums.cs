@@ -120,11 +120,3 @@ public enum SystemSettingValueType
     Time,
     EncryptedString
 }
-
-public enum OfflineSyncStatus
-{
-    Pending,
-    Processing,
-    Completed,
-    Failed
-}

@@ -217,18 +217,3 @@ public sealed class SystemSetting
     public Guid UpdatedBy { get; set; }
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }
-
-public sealed class OfflineSyncQueueItem
-{
-    public Guid QueueItemId { get; set; } = Guid.NewGuid();
-    public string EntityName { get; set; } = string.Empty;
-    public Guid EntityId { get; set; }
-    public string Operation { get; set; } = string.Empty;
-    public string PayloadJson { get; set; } = string.Empty;
-    public OfflineSyncStatus Status { get; set; } = OfflineSyncStatus.Pending;
-    public int RetryCount { get; set; }
-    public string? LastError { get; set; }
-    public DateTimeOffset QueuedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset? LastAttemptedAt { get; set; }
-    public DateTimeOffset? CompletedAt { get; set; }
-}

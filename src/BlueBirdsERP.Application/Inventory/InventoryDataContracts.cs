@@ -15,6 +15,7 @@ public interface IInventoryDataStore
     Task<IReadOnlyList<Batch>> GetBatchesByProductAsync(Guid productId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Batch>> GetAllBatchesAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Product>> GetActiveProductsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Product>> GetActiveProductCatalogAsync(CancellationToken cancellationToken = default);
     Task UpdateBatchAsync(Batch batch, CancellationToken cancellationToken = default);
     Task AddWastageRecordAsync(WastageRecord wastageRecord, CancellationToken cancellationToken = default);
     Task<decimal> GetSoldQuantityAsync(Guid batchId, CancellationToken cancellationToken = default);

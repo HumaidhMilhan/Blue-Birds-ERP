@@ -344,6 +344,26 @@ public sealed class CustomerAccountService(
                 .ToList());
     }
 
+    public async Task<IReadOnlyList<CustomerSearchResult>> SearchCustomersAsync(
+        string query,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2)
+        {
+            return [];
+        }
+
+        var customers = await dataStore.SearchCustomersAsync(query.Trim(), cancellationToken);
+        return customers
+            .Select(c => new CustomerSearchResult(
+                c.CustomerId,
+                c.Name,
+                c.Phone,
+                c.WhatsAppNo,
+                c.AccountType))
+            .ToList();
+    }
+
     private async Task<IReadOnlyList<Invoice>> SelectInvoicesForPaymentAsync(
         AccountPaymentRequest request,
         CancellationToken cancellationToken)

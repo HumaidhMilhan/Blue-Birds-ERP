@@ -15,7 +15,6 @@ public sealed class InfrastructureOptions
 public sealed class DatabaseOptions
 {
     public string Provider { get; set; } = "SQLite";
-    public string CentralConnectionString { get; set; } = string.Empty;
     public string LocalPosConnectionString { get; set; } = "Data Source=bluebirds-mvp.sqlite3";
     public string BackupDirectory { get; set; } = "backups";
 }

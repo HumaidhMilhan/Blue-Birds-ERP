@@ -10,7 +10,6 @@ using BlueBirdsERP.Infrastructure.Persistence;
 using BlueBirdsERP.Infrastructure.Printing;
 using BlueBirdsERP.Infrastructure.Reporting;
 using BlueBirdsERP.Infrastructure.Security;
-using BlueBirdsERP.Infrastructure.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -63,7 +62,6 @@ public static class DependencyInjection
         services.AddScoped<IReceiptPrinter, WindowsReceiptPrinter>();
         services.AddScoped<IReportingService, ReportingService>();
         services.AddScoped<IAuditLogReader, AuditLogReader>();
-        services.AddScoped<IOfflineSyncQueue, LocalOfflineSyncQueue>();
 
         return services;
     }

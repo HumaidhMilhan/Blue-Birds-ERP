@@ -10,7 +10,6 @@ public interface IAuthenticationService
 
 public interface ISessionService
 {
-    TimeSpan InactivityTimeout { get; }
     Task BeginSessionAsync(AuthenticatedUser user, CancellationToken cancellationToken = default);
     Task TouchAsync(CancellationToken cancellationToken = default);
     Task EndSessionAsync(CancellationToken cancellationToken = default);
@@ -64,6 +63,7 @@ public interface IInventoryService
 {
     Task<ProductCategoryResult> CreateProductCategoryAsync(CreateProductCategoryRequest request, CancellationToken cancellationToken = default);
     Task<ProductCatalogItem> CreateProductAsync(CreateProductRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProductCatalogItem>> GetProductCatalogAsync(CancellationToken cancellationToken = default);
     Task<BatchResult> RecordManualBatchPurchaseAsync(ManualBatchPurchaseRequest request, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Batch>> GetAvailableBatchesAsync(Guid productId, CancellationToken cancellationToken = default);
     Task DeductBatchStockAsync(Guid batchId, decimal quantity, CancellationToken cancellationToken = default);
@@ -88,6 +88,7 @@ public interface ICustomerAccountService
     Task<IReadOnlyList<CustomerPaymentHistoryEntry>> GetPaymentHistoryAsync(Guid customerId, CancellationToken cancellationToken = default);
     Task<CustomerAccountResult> UpdateBusinessAccountTermsAsync(UpdateBusinessAccountTermsRequest request, CancellationToken cancellationToken = default);
     Task<DebtorAgingReport> GenerateDebtorAgingReportAsync(DateOnly asOfDate, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CustomerSearchResult>> SearchCustomersAsync(string query, CancellationToken cancellationToken = default);
 }
 
 public interface IPaymentService
@@ -116,12 +117,6 @@ public interface IAuditLogger
     Task WriteAsync(AuditEntry entry, CancellationToken cancellationToken = default);
 }
 
-public interface IOfflineSyncQueue
-{
-    Task EnqueueAsync(OfflineSyncEnvelope envelope, CancellationToken cancellationToken = default);
-    Task<int> FlushAsync(CancellationToken cancellationToken = default);
-}
-
 public interface IReceiptPrinter
 {
     Task PrintInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken = default);
@@ -136,10 +131,8 @@ public interface ISystemSettingsService
 public interface IDatabaseManagementService
 {
     Task<DatabaseOperationResult> TestSqliteConnectionAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
-    Task<DatabaseOperationResult> TestPostgreSqlConnectionAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
     Task<DatabaseOperationResult> ApplyMigrationsAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
     Task<DatabaseBackupResult> BackupSqliteDatabaseAsync(DatabaseBackupRequest request, CancellationToken cancellationToken = default);
-    Task<OfflineSyncQueueStatusResult> GetSyncQueueStatusAsync(AdminOperationRequest request, CancellationToken cancellationToken = default);
 }
 
 public interface IReceiptPdfService
@@ -620,12 +613,6 @@ public sealed record DatabaseBackupResult(
     string BackupPath,
     string Message);
 
-public sealed record OfflineSyncQueueStatusResult(
-    int Pending,
-    int Processing,
-    int Completed,
-    int Failed);
-
 public sealed record ReceiptPdfRequest(
     Guid InvoiceId,
     Guid RequestedBy,
@@ -734,9 +721,9 @@ public sealed record AuditEntry(
     string? BeforeValueJson,
     string? AfterValueJson);
 
-public sealed record OfflineSyncEnvelope(
-    string EntityName,
-    Guid EntityId,
-    string Operation,
-    string PayloadJson,
-    DateTimeOffset QueuedAt);
+public sealed record CustomerSearchResult(
+    Guid CustomerId,
+    string Name,
+    string Phone,
+    string WhatsAppNo,
+    AccountType AccountType);

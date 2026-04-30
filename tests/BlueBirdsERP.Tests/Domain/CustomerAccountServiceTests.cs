@@ -304,6 +304,15 @@ public sealed class CustomerAccountServiceTests
             return Task.FromResult(customer);
         }
 
+        public Task<IReadOnlyList<Customer>> SearchCustomersAsync(string query, CancellationToken cancellationToken = default)
+        {
+            var results = Customers.Values
+                .Where(c => c.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                            c.Phone.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            return Task.FromResult<IReadOnlyList<Customer>>(results);
+        }
+
         public Task<BusinessAccount?> GetBusinessAccountAsync(Guid customerId, CancellationToken cancellationToken = default)
         {
             BusinessAccounts.TryGetValue(customerId, out var account);

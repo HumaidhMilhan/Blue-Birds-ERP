@@ -321,6 +321,11 @@ public sealed class InventoryServiceTests
             return Task.FromResult<IReadOnlyList<Product>>(Products.Where(product => product.IsActive).ToList());
         }
 
+        public Task<IReadOnlyList<Product>> GetActiveProductCatalogAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<Product>>(Products.Where(product => product.IsActive).ToList());
+        }
+
         public Task UpdateBatchAsync(Batch batch, CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;

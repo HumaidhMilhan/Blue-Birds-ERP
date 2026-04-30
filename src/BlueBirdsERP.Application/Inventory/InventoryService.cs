@@ -98,6 +98,16 @@ public sealed class InventoryService(
         }, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProductCatalogItem>> GetProductCatalogAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var products = await dataStore.GetActiveProductCatalogAsync(cancellationToken);
+        return products
+            .OrderBy(p => p.Name)
+            .Select(CreateProductCatalogItem)
+            .ToList();
+    }
+
     public async Task<BatchResult> RecordManualBatchPurchaseAsync(
         ManualBatchPurchaseRequest request,
         CancellationToken cancellationToken = default)

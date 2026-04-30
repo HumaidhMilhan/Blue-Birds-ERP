@@ -10,7 +10,6 @@ using BlueBirdsERP.Infrastructure.Persistence;
 using BlueBirdsERP.Infrastructure.Printing;
 using BlueBirdsERP.Infrastructure.Reporting;
 using BlueBirdsERP.Infrastructure.Security;
-using BlueBirdsERP.Infrastructure.Sync;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlueBirdsERP.Tests.Domain;
@@ -117,17 +116,17 @@ public sealed class MvpBackendFinalizationTests
             Guid.NewGuid(),
             UserRole.Admin,
             [
-                new SystemSettingUpdate("Database.CentralConnectionString", "Host=prod;Password=secret", SystemSettingValueType.EncryptedString, IsSecret: true),
+                new SystemSettingUpdate("Twilio.AuthToken", "secret-token-value", SystemSettingValueType.EncryptedString, IsSecret: true),
                 new SystemSettingUpdate("Receipt.Footer", "Thank you", SystemSettingValueType.String)
             ]));
 
-        var storedSecret = await context.SystemSettings.SingleAsync(setting => setting.SettingKey == "Database.CentralConnectionString");
+        var storedSecret = await context.SystemSettings.SingleAsync(setting => setting.SettingKey == "Twilio.AuthToken");
         var masked = await service.GetSettingsAsync(new SystemSettingsQuery(Guid.NewGuid(), UserRole.Admin));
         var revealed = await service.GetSettingsAsync(new SystemSettingsQuery(Guid.NewGuid(), UserRole.Admin, RevealSecrets: true));
 
-        Assert.NotEqual("Host=prod;Password=secret", storedSecret.SettingValue);
-        Assert.Equal("********", masked.Single(setting => setting.Key == "Database.CentralConnectionString").Value);
-        Assert.Equal("Host=prod;Password=secret", revealed.Single(setting => setting.Key == "Database.CentralConnectionString").Value);
+        Assert.NotEqual("secret-token-value", storedSecret.SettingValue);
+        Assert.Equal("********", masked.Single(setting => setting.Key == "Twilio.AuthToken").Value);
+        Assert.Equal("secret-token-value", revealed.Single(setting => setting.Key == "Twilio.AuthToken").Value);
         Assert.Contains(context.AuditLogs, log => log.Action == "SYSTEM_SETTING_UPDATE");
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetSettingsAsync(new SystemSettingsQuery(Guid.NewGuid(), UserRole.Cashier)));
     }
@@ -184,46 +183,18 @@ public sealed class MvpBackendFinalizationTests
     }
 
     [Fact]
-    public async Task Offline_queue_persists_items_and_flush_marks_pending_items_processing()
-    {
-        await using var context = CreateContext(out _);
-        var queue = new LocalOfflineSyncQueue(context);
-        var entityId = Guid.NewGuid();
-
-        await queue.EnqueueAsync(new OfflineSyncEnvelope("Invoice", entityId, "Upsert", "{\"ok\":true}", DateTimeOffset.UtcNow));
-        var flushed = await queue.FlushAsync();
-
-        var item = await context.OfflineSyncQueueItems.SingleAsync();
-        Assert.Equal(1, flushed);
-        Assert.Equal(entityId, item.EntityId);
-        Assert.Equal(OfflineSyncStatus.Processing, item.Status);
-        Assert.Equal(1, item.RetryCount);
-    }
-
-    [Fact]
-    public async Task Database_management_applies_schema_reports_queue_status_and_creates_backup()
+    public async Task Database_management_applies_schema_and_creates_backup()
     {
         await using var context = CreateContext(out var databasePath);
-        await context.OfflineSyncQueueItems.AddAsync(new OfflineSyncQueueItem
-        {
-            EntityName = "Notification",
-            EntityId = Guid.NewGuid(),
-            Operation = "Send",
-            PayloadJson = "{}",
-            Status = OfflineSyncStatus.Pending
-        });
-        await context.SaveChangesAsync();
         var options = CreateOptions(context.Database.GetConnectionString()!);
         var service = new DatabaseManagementService(context, options, new EfAuditLogger(context));
         var request = new AdminOperationRequest(Guid.NewGuid(), UserRole.Admin);
 
         var migrationResult = await service.ApplyMigrationsAsync(request);
-        var status = await service.GetSyncQueueStatusAsync(request);
         var backupDirectory = Path.Combine(Path.GetDirectoryName(databasePath)!, "backup");
         var backup = await service.BackupSqliteDatabaseAsync(new DatabaseBackupRequest(request.UserId, request.Role, backupDirectory));
 
         Assert.True(migrationResult.Succeeded);
-        Assert.Equal(1, status.Pending);
         Assert.True(backup.Succeeded);
         Assert.True(File.Exists(backup.BackupPath));
     }

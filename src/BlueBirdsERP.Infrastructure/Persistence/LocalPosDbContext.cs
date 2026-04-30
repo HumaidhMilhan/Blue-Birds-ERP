@@ -12,7 +12,6 @@ public sealed class LocalPosDbContext(DbContextOptions<LocalPosDbContext> option
     public DbSet<WastageRecord> WastageRecords => Set<WastageRecord>();
     public DbSet<SalesReturn> SalesReturns => Set<SalesReturn>();
     public DbSet<SalesReturnItem> SalesReturnItems => Set<SalesReturnItem>();
-    public DbSet<OfflineSyncQueueItem> OfflineSyncQueueItems => Set<OfflineSyncQueueItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,10 +21,8 @@ public sealed class LocalPosDbContext(DbContextOptions<LocalPosDbContext> option
         modelBuilder.Entity<WastageRecord>().HasKey(entity => entity.WastageId);
         modelBuilder.Entity<SalesReturn>().HasKey(entity => entity.ReturnId);
         modelBuilder.Entity<SalesReturnItem>().HasKey(entity => entity.ReturnItemId);
-        modelBuilder.Entity<OfflineSyncQueueItem>().HasKey(entity => entity.QueueItemId);
 
         modelBuilder.Entity<Invoice>().HasIndex(entity => entity.InvoiceNumber).IsUnique();
-        modelBuilder.Entity<OfflineSyncQueueItem>().HasIndex(entity => entity.Status);
 
         modelBuilder.Entity<Invoice>()
             .HasMany(entity => entity.Items)

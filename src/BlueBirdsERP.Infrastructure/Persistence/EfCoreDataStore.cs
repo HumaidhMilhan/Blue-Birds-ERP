@@ -45,6 +45,15 @@ public sealed class EfCoreDataStore(PoultryProDbContext dbContext) :
         return dbContext.Customers.SingleOrDefaultAsync(customer => customer.CustomerId == customerId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Customer>> SearchCustomersAsync(string query, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Customers
+            .Where(c => c.Name.Contains(query) || c.Phone.Contains(query))
+            .OrderBy(c => c.Name)
+            .Take(20)
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<BusinessAccount?> GetBusinessAccountAsync(Guid customerId, CancellationToken cancellationToken = default)
     {
         return dbContext.BusinessAccounts.SingleOrDefaultAsync(account => account.CustomerId == customerId, cancellationToken);
@@ -185,6 +194,14 @@ public sealed class EfCoreDataStore(PoultryProDbContext dbContext) :
     }
 
     public async Task<IReadOnlyList<Product>> GetActiveProductsAsync(CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Products
+            .Where(product => product.IsActive)
+            .OrderBy(product => product.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Product>> GetActiveProductCatalogAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.Products
             .Where(product => product.IsActive)

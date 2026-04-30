@@ -22,7 +22,6 @@ public sealed class PoultryProDbContext(DbContextOptions<PoultryProDbContext> op
     public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
-    public DbSet<OfflineSyncQueueItem> OfflineSyncQueueItems => Set<OfflineSyncQueueItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,13 +41,11 @@ public sealed class PoultryProDbContext(DbContextOptions<PoultryProDbContext> op
         modelBuilder.Entity<NotificationTemplate>().HasKey(entity => entity.TemplateId);
         modelBuilder.Entity<AuditLog>().HasKey(entity => entity.LogId);
         modelBuilder.Entity<SystemSetting>().HasKey(entity => entity.SettingKey);
-        modelBuilder.Entity<OfflineSyncQueueItem>().HasKey(entity => entity.QueueItemId);
 
         modelBuilder.Entity<User>().HasIndex(entity => entity.Username).IsUnique();
         modelBuilder.Entity<BusinessAccount>().HasIndex(entity => entity.CustomerId).IsUnique();
         modelBuilder.Entity<Invoice>().HasIndex(entity => entity.InvoiceNumber).IsUnique();
         modelBuilder.Entity<NotificationTemplate>().HasIndex(entity => entity.NotificationType).IsUnique();
-        modelBuilder.Entity<OfflineSyncQueueItem>().HasIndex(entity => entity.Status);
 
         modelBuilder.Entity<Invoice>()
             .HasMany(entity => entity.Items)

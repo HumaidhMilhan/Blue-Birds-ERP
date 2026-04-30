@@ -9,8 +9,6 @@ public sealed class InMemorySessionService(ISystemClock clock) : ISessionService
     private readonly Dictionary<Guid, SessionState> sessionsByUser = [];
     private Guid? currentUserId;
 
-    public TimeSpan InactivityTimeout { get; } = TimeSpan.Zero;
-
     public Task BeginSessionAsync(AuthenticatedUser user, CancellationToken cancellationToken = default)
     {
         lock (syncRoot)
