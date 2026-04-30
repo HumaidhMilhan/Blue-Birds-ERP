@@ -16,7 +16,7 @@
             <Border Style="{StaticResource CardStyle}" Margin="0,0,0,32" Padding="20">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="22" Padding="16,8">
+                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12" Padding="16,8">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="FROM" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,12,0" />
                                 <DatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" Width="140" Margin="0,0,24,0" />
@@ -43,7 +43,7 @@
 
             <!-- Error -->
             <Border Background="{StaticResource ErrorContainerBrush}"
-                    CornerRadius="22" Padding="20,16"
+                    CornerRadius="12" Padding="20,16"
                     Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
                     Margin="0,0,0,32">
                 <StackPanel Orientation="Horizontal">
@@ -123,7 +123,7 @@
                     <StackPanel>
                         <TextBlock Text="Sales Breakdown" Style="{StaticResource SectionHeaderStyle}" />
                         
-                        <Border Background="{StaticResource SurfaceContainerLowBrush}" CornerRadius="22" Padding="20" Margin="0,0,0,24">
+                        <Border Background="{StaticResource SurfaceContainerLowBrush}" CornerRadius="12" Padding="20" Margin="0,0,0,24">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -180,7 +180,7 @@
                                     <Border Background="{StaticResource WarningContainerBrush}"
                                             BorderBrush="{StaticResource WarningBrush}"
                                             BorderThickness="1,0,0,0"
-                                            CornerRadius="22" Padding="16,12" Margin="0,0,0,12">
+                                            CornerRadius="12" Padding="16,12" Margin="0,0,0,12">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
@@ -203,7 +203,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         
-                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="26" Padding="24" 
+                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12" Padding="24"
                                 Visibility="{Binding LowStockItems.Count, FallbackValue=0, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">
                             <StackPanel HorizontalAlignment="Center">
                                 <Path Data="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M11,17H13V15H11V17M11,13H13V7H11V13Z" 

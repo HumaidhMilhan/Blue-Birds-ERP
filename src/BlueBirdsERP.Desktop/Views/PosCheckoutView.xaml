@@ -7,16 +7,19 @@
         <Style x:Key="SegmentedRadioButtonStyle" TargetType="RadioButton">
             <Setter Property="Background" Value="{StaticResource SurfaceContainerLowBrush}" />
             <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
-            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="Padding" Value="14,7" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="Chip"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="22"
+                                BorderBrush="{StaticResource OutlineVariantBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
@@ -26,6 +29,7 @@
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Chip" Property="Background" Value="{StaticResource PrimaryContainerBrush}" />
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
                                 <Setter Property="Foreground" Value="{StaticResource OnPrimaryContainerBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -35,40 +39,59 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="24,20,24,24">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding AddItemCommand}" />
+        <KeyBinding Key="F4" Command="{Binding SearchCustomerCommand}" />
+        <KeyBinding Key="F10" Command="{Binding CompleteSaleCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding NewSaleCommand}" />
+    </UserControl.InputBindings>
+
+    <Grid Margin="16">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="24" />
-            <ColumnDefinition Width="410" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="380" />
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0"
                 Style="{StaticResource CardStyle}"
-                Padding="24">
+                Padding="18">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid Grid.Row="0" Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="16" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel>
+                    <StackPanel VerticalAlignment="Bottom">
                         <TextBlock Text="SALE TYPE" Style="{StaticResource LabelStyle}" />
                         <StackPanel Orientation="Horizontal">
-                            <RadioButton Content="Retail" IsChecked="True" Style="{StaticResource SegmentedRadioButtonStyle}" MinWidth="112" Margin="0,0,8,0" />
-                            <RadioButton Content="Wholesale" Style="{StaticResource SegmentedRadioButtonStyle}" MinWidth="132" />
+                            <RadioButton Content="Retail"
+                                         IsChecked="True"
+                                         Checked="SaleRetail_Checked"
+                                         GroupName="SaleType"
+                                         Style="{StaticResource SegmentedRadioButtonStyle}"
+                                         MinWidth="92"
+                                         Margin="0,0,8,0" />
+                            <RadioButton Content="Wholesale"
+                                         Checked="SaleWholesale_Checked"
+                                         GroupName="SaleType"
+                                         Style="{StaticResource SegmentedRadioButtonStyle}"
+                                         MinWidth="112" />
                             <ComboBox ItemsSource="{Binding SaleChannels}" SelectedItem="{Binding SelectedSaleChannel}" Visibility="Collapsed" />
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Margin="26,0,0,0">
+                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
                         <TextBlock Text="CUSTOMER" Style="{StaticResource LabelStyle}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -78,78 +101,52 @@
                             <Grid>
                                 <TextBox Text="{Binding CustomerSearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource InputTextBoxStyle}"
-                                         Padding="48,12,16,12" />
+                                         Padding="38,8,12,8" />
                                 <Path Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
                                       Fill="{StaticResource OnSurfaceVariantBrush}"
-                                      Width="20"
-                                      Height="20"
+                                      Width="16"
+                                      Height="16"
                                       HorizontalAlignment="Left"
                                       VerticalAlignment="Center"
-                                      Margin="18,0,0,0" />
+                                      Margin="13,0,0,0" />
                             </Grid>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
-                                <Button Content="Search" Command="{Binding SearchCustomerCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="18,10" />
-                                <Button Content="Clear" Command="{Binding ClearCustomerCommand}" Style="{StaticResource GhostButtonStyle}" Margin="6,0,0,0" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                                <Button Content="Search"
+                                        Command="{Binding SearchCustomerCommand}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        ToolTip="Search customer" />
+                                <Button Content="Clear"
+                                        Command="{Binding ClearCustomerCommand}"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Margin="4,0,0,0" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
+
+                    <Button Grid.Column="4"
+                            Command="{Binding AddItemCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Height="38"
+                            MinWidth="120"
+                            VerticalAlignment="Bottom"
+                            ToolTip="Add item">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                                  Fill="{StaticResource OnPrimaryBrush}"
+                                  Width="16"
+                                  Height="16"
+                                  Stretch="Uniform"
+                                  Margin="0,0,8,0" />
+                            <TextBlock Text="Add Item" />
+                        </StackPanel>
+                    </Button>
                 </Grid>
 
-                <Button Grid.Row="1"
-                        Command="{Binding AddItemCommand}"
-                        Style="{StaticResource GhostButtonStyle}"
-                        Padding="0"
-                        HorizontalAlignment="Stretch"
-                        Margin="0,0,0,20">
-                    <Border Background="{StaticResource PrimaryContainerBrush}"
-                            CornerRadius="30"
-                            Padding="20,18">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Border Width="46"
-                                    Height="46"
-                                    Background="{StaticResource PrimaryBrush}"
-                                    CornerRadius="23"
-                                    Margin="0,0,16,0">
-                                <Path Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
-                                      Fill="{StaticResource OnPrimaryBrush}"
-                                      Width="22"
-                                      Height="22"
-                                      Stretch="Uniform"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Add item"
-                                           FontSize="18"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource OnPrimaryContainerBrush}" />
-                                <TextBlock Text="Open product picker and add batch quantity"
-                                           FontSize="13"
-                                           Foreground="{StaticResource OnSurfaceVariantBrush}"
-                                           Margin="0,3,0,0" />
-                            </StackPanel>
-                            <Border Grid.Column="2"
-                                    Background="{StaticResource SurfaceContainerLowestBrush}"
-                                    CornerRadius="18"
-                                    Padding="12,7"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="Enter"
-                                           FontSize="12"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource PrimaryBrush}" />
-                            </Border>
-                        </Grid>
-                    </Border>
-                </Button>
-
-                <Border Grid.Row="2"
-                        Background="{StaticResource SurfaceContainerLowBrush}"
-                        CornerRadius="26"
+                <Border Grid.Row="1"
+                        Background="{StaticResource SurfaceContainerLowestBrush}"
+                        BorderBrush="{StaticResource DividerBrush}"
+                        BorderThickness="1"
+                        CornerRadius="12"
                         Padding="0"
                         ClipToBounds="True">
                     <DataGrid ItemsSource="{Binding LineItems}"
@@ -160,23 +157,26 @@
                               CellStyle="{StaticResource DataGridCellStyle}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
-                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchReference}" Width="120" />
-                            <DataGridTextColumn Header="Qty" Binding="{Binding DisplayQuantity}" Width="90" />
-                            <DataGridTextColumn Header="Price" Binding="{Binding UnitPrice, Converter={StaticResource CurrencyFormat}}" Width="110" />
-                            <DataGridTextColumn Header="Discount" Binding="{Binding DiscountAmount, Converter={StaticResource CurrencyFormat}}" Width="105" />
-                            <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, Converter={StaticResource CurrencyFormat}}" Width="120" FontWeight="Bold" />
-                            <DataGridTemplateColumn Width="70">
+                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchReference}" Width="118" />
+                            <DataGridTextColumn Header="Qty" Binding="{Binding DisplayQuantity}" Width="86" />
+                            <DataGridTextColumn Header="Price" Binding="{Binding UnitPrice, Converter={StaticResource CurrencyFormat}}" Width="104" />
+                            <DataGridTextColumn Header="Discount" Binding="{Binding DiscountAmount, Converter={StaticResource CurrencyFormat}}" Width="96" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, Converter={StaticResource CurrencyFormat}}" Width="112" FontWeight="Bold" />
+                            <DataGridTemplateColumn Width="52">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource GhostButtonStyle}"
-                                                Padding="8"
+                                                Width="30"
+                                                Height="30"
+                                                MinHeight="30"
+                                                Padding="0"
                                                 ToolTip="Remove item">
                                             <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
                                                   Fill="{StaticResource ErrorBrush}"
-                                                  Width="18"
-                                                  Height="18" />
+                                                  Width="15"
+                                                  Height="15" />
                                         </Button>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -185,25 +185,28 @@
                     </DataGrid>
                 </Border>
 
-                <Grid Grid.Row="3" Margin="0,18,0,0">
+                <Grid Grid.Row="2" Margin="0,14,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Background="{StaticResource SurfaceContainerHighBrush}"
-                            CornerRadius="22"
-                            Padding="16,11"
+                    <Border Background="{StaticResource SurfaceContainerLowBrush}"
+                            BorderBrush="{StaticResource OutlineVariantBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12,8"
                             HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
                                   Fill="{StaticResource PrimaryBrush}"
-                                  Width="16"
-                                  Height="16"
-                                  Margin="0,0,10,0" />
+                                  Width="15"
+                                  Height="15"
+                                  Margin="0,0,8,0" />
                             <TextBlock Text="{Binding StatusMessage}"
-                                       FontSize="13"
+                                       FontSize="12"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource OnSurfaceBrush}" />
+                                       Foreground="{StaticResource OnSurfaceBrush}"
+                                       VerticalAlignment="Center" />
                         </StackPanel>
                     </Border>
 
@@ -214,8 +217,7 @@
 
         <Border Grid.Column="2"
                 Style="{StaticResource CardStyle}"
-                Background="{StaticResource SurfaceContainerLowBrush}"
-                Padding="24">
+                Padding="18">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -225,48 +227,48 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                    <TextBlock Text="Current sale"
-                               FontSize="22"
+                <StackPanel Grid.Row="0" Margin="0,0,0,14">
+                    <TextBlock Text="Sale Summary"
+                               FontSize="19"
                                FontWeight="Bold"
                                Foreground="{StaticResource OnSurfaceBrush}" />
                     <TextBlock Text="{Binding LastInvoiceNumber, FallbackValue=New invoice}"
-                               FontSize="13"
+                               FontSize="12"
                                Foreground="{StaticResource OnSurfaceVariantBrush}"
-                               Margin="0,4,0,0" />
+                               Margin="0,3,0,0" />
                 </StackPanel>
 
                 <Border Grid.Row="1"
                         Background="{StaticResource PrimaryBrush}"
-                        CornerRadius="30"
-                        Padding="22"
-                        Margin="0,0,0,20">
+                        CornerRadius="12"
+                        Padding="18"
+                        Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Text="TOTAL DUE"
-                                   FontSize="12"
+                                   FontSize="11"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource OnPrimaryBrush}"
-                                   Opacity="0.76" />
+                                   Opacity="0.78" />
                         <TextBlock Text="{Binding GrandTotal, Converter={StaticResource CurrencyFormat}}"
-                                   FontSize="38"
+                                   FontSize="32"
                                    FontWeight="Bold"
                                    Foreground="{StaticResource OnPrimaryBrush}"
-                                   Margin="0,6,0,0" />
+                                   Margin="0,4,0,0" />
                     </StackPanel>
                 </Border>
 
-                <StackPanel Grid.Row="2" Margin="0,0,0,18">
+                <StackPanel Grid.Row="2" Margin="0,0,0,16">
                     <TextBlock Text="PAYMENT" Style="{StaticResource LabelStyle}" />
                     <UniformGrid Columns="2" Rows="2">
-                        <RadioButton Content="Cash" IsChecked="True" Checked="PaymentCash_Checked" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="0,0,6,6" />
-                        <RadioButton Content="Card" Checked="PaymentCard_Checked" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="6,0,0,6" />
-                        <RadioButton Content="Credit" Checked="PaymentCredit_Checked" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="0,6,6,0" />
-                        <RadioButton Content="Mixed" Checked="PaymentMixed_Checked" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="6,6,0,0" />
+                        <RadioButton Content="Cash" IsChecked="True" Checked="PaymentCash_Checked" GroupName="PaymentMethod" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="0,0,6,6" />
+                        <RadioButton Content="Card" Checked="PaymentCard_Checked" GroupName="PaymentMethod" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="6,0,0,6" />
+                        <RadioButton Content="Credit" Checked="PaymentCredit_Checked" GroupName="PaymentMethod" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="0,6,6,0" />
+                        <RadioButton Content="Mixed" Checked="PaymentMixed_Checked" GroupName="PaymentMethod" Style="{StaticResource SegmentedRadioButtonStyle}" Margin="6,6,0,0" />
                     </UniformGrid>
                 </StackPanel>
 
                 <StackPanel Grid.Row="3">
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -274,7 +276,7 @@
                         <TextBlock Text="Subtotal" Foreground="{StaticResource OnSurfaceVariantBrush}" />
                         <TextBlock Grid.Column="1" Text="{Binding Subtotal, Converter={StaticResource CurrencyFormat}}" FontWeight="SemiBold" />
                     </Grid>
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -282,7 +284,7 @@
                         <TextBlock Text="Discounts" Foreground="{StaticResource OnSurfaceVariantBrush}" />
                         <TextBlock Grid.Column="1" Text="{Binding DiscountTotal, Converter={StaticResource CurrencyFormat}}" FontWeight="SemiBold" Foreground="{StaticResource ErrorBrush}" />
                     </Grid>
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -290,17 +292,18 @@
                         <TextBlock Text="Paid" Foreground="{StaticResource OnSurfaceVariantBrush}" />
                         <TextBlock Grid.Column="1" Text="{Binding PaidAmount, Converter={StaticResource CurrencyFormat}}" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" />
                     </Grid>
-                    <Grid Margin="0,0,0,18">
+                    <Separator Style="{StaticResource SeparatorStyle}" Margin="0,2,0,12" />
+                    <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Balance" Foreground="{StaticResource OnSurfaceVariantBrush}" />
+                        <TextBlock Text="Balance" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}" />
                         <TextBlock Grid.Column="1" Text="{Binding BalanceAmount, Converter={StaticResource CurrencyFormat}}" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}" />
                     </Grid>
 
                     <StackPanel Visibility="{Binding IsCreditPayment, Converter={StaticResource BoolToVis}}">
-                        <Grid Margin="0,0,0,12">
+                        <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="12" />
@@ -316,32 +319,36 @@
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="DUE DATE" Style="{StaticResource LabelStyle}" />
-                        <DatePicker SelectedDate="{Binding DueDate}" Height="48" Margin="0,0,0,14" />
+                        <DatePicker SelectedDate="{Binding DueDate}" Height="38" Margin="0,0,0,12" />
                     </StackPanel>
 
                     <Border Visibility="{Binding HasReceipt, Converter={StaticResource BoolToVis}}"
                             Background="{StaticResource SuccessContainerBrush}"
-                            CornerRadius="24"
-                            Padding="16"
+                            BorderBrush="{StaticResource OutlineVariantBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="12"
                             Margin="0,4,0,0">
                         <StackPanel>
                             <TextBlock Text="Sale completed" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
-                            <TextBlock Text="{Binding LastInvoiceNumber}" FontSize="12" Foreground="{StaticResource OnSurfaceVariantBrush}" Margin="0,3,0,0" />
+                            <TextBlock Text="{Binding LastInvoiceNumber}" FontSize="12" Foreground="{StaticResource OnSurfaceVariantBrush}" Margin="0,2,0,0" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
-                <StackPanel Grid.Row="4" Margin="0,22,0,0">
+                <StackPanel Grid.Row="4" Margin="0,18,0,0">
                     <Button Content="Complete Sale"
                             Command="{Binding CompleteSaleCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
-                            Height="60"
-                            FontSize="17" />
+                            Height="44"
+                            FontSize="15"
+                            ToolTip="Complete sale" />
                     <Button Content="Discard and Start New"
                             Command="{Binding NewSaleCommand}"
                             Style="{StaticResource GhostButtonStyle}"
-                            Margin="0,10,0,0"
-                            Foreground="{StaticResource ErrorBrush}" />
+                            Margin="0,8,0,0"
+                            Foreground="{StaticResource ErrorBrush}"
+                            ToolTip="Start a new sale" />
                 </StackPanel>
             </Grid>
         </Border>

@@ -4,7 +4,7 @@
         Style="{StaticResource DialogWindowStyle}"
         Title="Record Payment" Width="450">
 
-    <Border Style="{StaticResource CardStyle}" Padding="24" CornerRadius="26">
+    <Border Style="{StaticResource CardStyle}" Padding="24" CornerRadius="12">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -16,7 +16,7 @@
 
             <StackPanel Grid.Row="1" Margin="0,0,0,32">
                 <Border Background="{StaticResource ErrorContainerBrush}"
-                        CornerRadius="22" Padding="20,16" Margin="0,0,0,24">
+                        CornerRadius="12" Padding="20,16" Margin="0,0,0,24">
                     <StackPanel>
                         <TextBlock Text="TOTAL OUTSTANDING" Style="{StaticResource LabelStyle}" Foreground="{StaticResource ErrorBrush}" Opacity="0.8" />
                         <TextBlock x:Name="OutstandingText" FontSize="24" FontWeight="Bold"

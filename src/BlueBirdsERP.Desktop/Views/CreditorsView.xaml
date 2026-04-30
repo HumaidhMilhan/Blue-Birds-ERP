@@ -44,7 +44,7 @@
             </StackPanel>
             
             <Border Background="{StaticResource ErrorContainerBrush}"
-                    CornerRadius="22" Padding="16,12"
+                    CornerRadius="12" Padding="16,12"
                     Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
                 <StackPanel Orientation="Horizontal">
                     <Path Data="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z" 
@@ -89,7 +89,7 @@
                                                     <DataTemplate>
                                                         <Border Padding="12,10" Margin="0,0,0,4"
                                                                 Background="{StaticResource SurfaceContainerLowBrush}"
-                                                                CornerRadius="18">
+                                                                CornerRadius="10">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="100" />
@@ -136,7 +136,7 @@
                     <!-- Customer info (shown when selected) -->
                     <ScrollViewer Visibility="{Binding HasSelectedCustomer, Converter={StaticResource BoolToVis}}" Padding="24">
                         <StackPanel>
-                            <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="26" Padding="20" Margin="0,0,0,24">
+                            <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12" Padding="20" Margin="0,0,0,24">
                                 <StackPanel>
                                     <TextBlock Text="{Binding SelectedCustomer.Name}" FontWeight="Bold" FontSize="18" Foreground="{StaticResource OnSurfaceBrush}" />
                                     <Border Background="{StaticResource PrimaryContainerBrush}" CornerRadius="16" Padding="10,4" HorizontalAlignment="Left" Margin="0,8,0,0">
@@ -216,7 +216,7 @@
 
         <!-- Status bar -->
         <Border Grid.Row="3" Margin="0,24,0,0" Padding="16,10"
-                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="22">
+                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12">
             <StackPanel Orientation="Horizontal">
                 <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" 
                       Fill="{StaticResource PrimaryBrush}" Width="16" Height="16" Margin="0,0,12,0" />

@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
 
-    <!-- BlueBirds Material You foundation -->
+    <!-- BlueBirds professional desktop ERP foundation -->
     <FontFamily x:Key="AppFont">pack://application:,,,/Resources/Fonts/#Readex Pro</FontFamily>
 
     <Style x:Key="WindowStyle" TargetType="Window">
@@ -24,7 +24,7 @@
         <Setter Property="WindowStartupLocation" Value="CenterOwner" />
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
-                <shell:WindowChrome CaptionHeight="0" CornerRadius="26" GlassFrameThickness="0" NonClientFrameEdges="None" ResizeBorderThickness="0" />
+                <shell:WindowChrome CaptionHeight="0" CornerRadius="12" GlassFrameThickness="0" NonClientFrameEdges="None" ResizeBorderThickness="0" />
             </Setter.Value>
         </Setter>
     </Style>
@@ -34,12 +34,12 @@
         <Setter Property="Background" Value="{StaticResource SurfaceContainerLowestBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource OutlineVariantBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="26" />
-        <Setter Property="Padding" Value="24" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="18" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect Color="#3B2F45" BlurRadius="24" ShadowDepth="6" Opacity="0.08" Direction="270" />
+                <DropShadowEffect Color="#17384A" BlurRadius="8" ShadowDepth="1" Opacity="0.04" Direction="270" />
             </Setter.Value>
         </Setter>
         <Style.Triggers>
@@ -50,9 +50,9 @@
     </Style>
 
     <Style x:Key="KpiCardStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}">
-        <Setter Property="Padding" Value="22" />
-        <Setter Property="MinWidth" Value="200" />
-        <Setter Property="CornerRadius" Value="26" />
+        <Setter Property="Padding" Value="18" />
+        <Setter Property="MinWidth" Value="180" />
+        <Setter Property="CornerRadius" Value="12" />
     </Style>
 
     <Style x:Key="TonalPanelStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}">
@@ -62,8 +62,8 @@
     </Style>
 
     <Style x:Key="StatusChipStyle" TargetType="Border">
-        <Setter Property="CornerRadius" Value="16" />
-        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="10,4" />
         <Setter Property="Background" Value="{StaticResource SurfaceContainerHighBrush}" />
     </Style>
 
@@ -72,8 +72,8 @@
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="Padding" Value="22,12" />
-        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="MinHeight" Value="38" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
@@ -83,7 +83,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="24"
+                            CornerRadius="10"
                             SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
@@ -131,13 +131,13 @@
         <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Padding" Value="12,8" />
     </Style>
 
     <!-- Inputs -->
     <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
-        <Setter Property="Padding" Value="16,12" />
-        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinHeight" Value="38" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
@@ -151,7 +151,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="Transparent"
                             BorderThickness="2"
-                            CornerRadius="16"
+                            CornerRadius="10"
                             SnapsToDevicePixels="True">
                         <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Margin="{TemplateBinding Padding}" />
                     </Border>
@@ -172,8 +172,8 @@
     </Style>
 
     <Style x:Key="PasswordBoxStyle" TargetType="PasswordBox">
-        <Setter Property="Padding" Value="16,12" />
-        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinHeight" Value="38" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
@@ -187,7 +187,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="Transparent"
                             BorderThickness="2"
-                            CornerRadius="16"
+                            CornerRadius="10"
                             SnapsToDevicePixels="True">
                         <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Margin="{TemplateBinding Padding}" />
                     </Border>
@@ -208,8 +208,8 @@
     </Style>
 
     <Style x:Key="InputComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="Padding" Value="16,12" />
-        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinHeight" Value="38" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
@@ -223,7 +223,7 @@
     <Style TargetType="DatePicker">
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="MinHeight" Value="38" />
         <Setter Property="Background" Value="{StaticResource FieldBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource OutlineVariantBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -240,13 +240,13 @@
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="RowBackground" Value="Transparent" />
-        <Setter Property="AlternatingRowBackground" Value="#55F8ECF4" />
+        <Setter Property="AlternatingRowBackground" Value="#55EAF4FA" />
         <Setter Property="GridLinesVisibility" Value="Horizontal" />
         <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DividerBrush}" />
         <Setter Property="HeadersVisibility" Value="Column" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="RowHeight" Value="52" />
-        <Setter Property="ColumnHeaderHeight" Value="46" />
+        <Setter Property="RowHeight" Value="42" />
+        <Setter Property="ColumnHeaderHeight" Value="38" />
         <Setter Property="FontFamily" Value="{StaticResource AppFont}" />
     </Style>
 
@@ -255,7 +255,7 @@
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="Padding" Value="18,10" />
+        <Setter Property="Padding" Value="12,8" />
         <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -289,7 +289,7 @@
     </Style>
 
     <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
-        <Setter Property="Padding" Value="18,0" />
+        <Setter Property="Padding" Value="12,0" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
@@ -312,25 +312,25 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
-        <Setter Property="Margin" Value="0,0,0,7" />
+        <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
 
     <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontSize" Value="19" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
-        <Setter Property="Margin" Value="0,0,0,20" />
+        <Setter Property="Margin" Value="0,0,0,16" />
     </Style>
 
     <Style x:Key="PageTitleStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="34" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="LineHeight" Value="42" />
+        <Setter Property="LineHeight" Value="34" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
     </Style>
 
     <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}" />
         <Setter Property="Margin" Value="0,6,0,0" />
     </Style>
@@ -342,13 +342,13 @@
     </Style>
 
     <Style x:Key="MetricValueStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}" />
     </Style>
 
     <Style x:Key="SubHeaderStyle" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -367,7 +367,7 @@
                     <Border x:Name="ItemSurface"
                             Background="Transparent"
                             BorderThickness="0"
-                            CornerRadius="26"
+                            CornerRadius="10"
                             Margin="6,4"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
@@ -420,7 +420,7 @@
     </Style>
 
     <Style TargetType="ScrollBar">
-        <Setter Property="Width" Value="10" />
+        <Setter Property="Width" Value="8" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Template">
             <Setter.Value>
@@ -489,7 +489,7 @@
     <Style x:Key="SeparatorStyle" TargetType="Separator">
         <Setter Property="Background" Value="{StaticResource DividerBrush}" />
         <Setter Property="Height" Value="1" />
-        <Setter Property="Margin" Value="0,18" />
+        <Setter Property="Margin" Value="0,14" />
     </Style>
 
 </ResourceDictionary>

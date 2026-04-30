@@ -54,7 +54,7 @@
                 Background="{StaticResource WarningContainerBrush}"
                 BorderBrush="{StaticResource WarningBrush}"
                 BorderThickness="1,0,0,0"
-                CornerRadius="22" Padding="20,16" Margin="0,0,0,24">
+                CornerRadius="12" Padding="20,16" Margin="0,0,0,24">
             <ItemsControl ItemsSource="{Binding Alerts}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -175,7 +175,7 @@
 
         <!-- Status bar -->
         <Border Grid.Row="3" Margin="0,24,0,0" Padding="16,10"
-                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="22">
+                Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12">
             <StackPanel Orientation="Horizontal">
                 <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" 
                       Fill="{StaticResource PrimaryBrush}" Width="16" Height="16" Margin="0,0,12,0" />

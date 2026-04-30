@@ -16,7 +16,7 @@
             <Border Style="{StaticResource CardStyle}" Margin="0,0,0,32" Padding="20">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="22" Padding="16,8">
+                        <Border Background="{StaticResource SurfaceContainerBrush}" CornerRadius="12" Padding="16,8">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="FROM" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,12,0" />
                                 <DatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" Width="140" Margin="0,0,24,0" />
@@ -43,7 +43,7 @@
 
             <!-- Error -->
             <Border Background="{StaticResource ErrorContainerBrush}"
-                    CornerRadius="22" Padding="20,16"
+                    CornerRadius="12" Padding="20,16"
                     Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
                     Margin="0,0,0,32">
                 <StackPanel Orientation="Horizontal">
@@ -137,7 +137,7 @@
                     <Border Style="{StaticResource CardStyle}" Margin="0,0,0,24">
                         <StackPanel>
                             <TextBlock Text="Sales Summary" Style="{StaticResource SectionHeaderStyle}" />
-                            <Border Background="{StaticResource SurfaceContainerLowBrush}" CornerRadius="22" Padding="20">
+                            <Border Background="{StaticResource SurfaceContainerLowBrush}" CornerRadius="12" Padding="20">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -176,7 +176,7 @@
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Cost of Goods Sold" Foreground="{StaticResource OnSurfaceVariantBrush}" />
                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CostOfGoodsSold, Converter={StaticResource CurrencyFormat}}" FontWeight="SemiBold" Foreground="{StaticResource ErrorBrush}" />
                             </Grid>
-                            <Border Background="{StaticResource SuccessContainerBrush}" CornerRadius="22" Padding="20,16">
+                            <Border Background="{StaticResource SuccessContainerBrush}" CornerRadius="12" Padding="20,16">
                                 <DockPanel>
                                     <TextBlock Text="NET GROSS PROFIT" FontWeight="Bold" DockPanel.Dock="Left" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding GrossProfit, Converter={StaticResource CurrencyFormat}}" FontSize="20" FontWeight="Bold"

@@ -16,10 +16,18 @@ public partial class PosCheckoutView : UserControl
     private void PaymentCard_Checked(object sender, RoutedEventArgs e) => SetPaymentMethod(PaymentMethod.Card);
     private void PaymentCredit_Checked(object sender, RoutedEventArgs e) => SetPaymentMethod(PaymentMethod.Credit);
     private void PaymentMixed_Checked(object sender, RoutedEventArgs e) => SetPaymentMethod(PaymentMethod.Mixed);
+    private void SaleRetail_Checked(object sender, RoutedEventArgs e) => SetSaleChannel(SaleChannel.Retail);
+    private void SaleWholesale_Checked(object sender, RoutedEventArgs e) => SetSaleChannel(SaleChannel.Wholesale);
 
     private void SetPaymentMethod(PaymentMethod method)
     {
         if (DataContext is PosCheckoutViewModel vm)
             vm.SelectedPaymentMethod = method;
+    }
+
+    private void SetSaleChannel(SaleChannel channel)
+    {
+        if (DataContext is PosCheckoutViewModel vm)
+            vm.SelectedSaleChannel = channel;
     }
 }

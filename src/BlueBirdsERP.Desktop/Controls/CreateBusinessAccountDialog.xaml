@@ -7,7 +7,7 @@
     <Border Background="{StaticResource SurfaceContainerLowestBrush}"
             BorderBrush="{StaticResource OutlineBrush}"
             BorderThickness="1"
-            CornerRadius="26"
+            CornerRadius="12"
             ClipToBounds="True">
         <Grid>
             <Grid.RowDefinitions>

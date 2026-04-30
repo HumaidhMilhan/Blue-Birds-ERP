@@ -4,17 +4,17 @@
 
     <Border Style="{StaticResource CardStyle}"
             Visibility="{Binding CreditSummary, Converter={StaticResource BoolToVis}}"
-            Padding="24"
+            Padding="16"
             Background="{StaticResource SurfaceElevatedBrush}"
-            Margin="0,16,0,0">
+            Margin="0,8,0,0">
         <StackPanel>
-            <DockPanel Margin="0,0,0,20">
+            <DockPanel Margin="0,0,0,14">
                 <TextBlock Text="Customer Credit Profile"
                            FontWeight="Bold"
-                           FontSize="16"
+                           FontSize="14"
                            Foreground="{StaticResource PrimaryBrush}"
                            VerticalAlignment="Center" />
-                <Border DockPanel.Dock="Right" Background="{StaticResource PrimaryContainerBrush}" CornerRadius="16" Padding="10,4">
+                <Border DockPanel.Dock="Right" Background="{StaticResource PrimaryContainerBrush}" CornerRadius="8" Padding="8,3">
                     <TextBlock Text="CREDIT ACTIVE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
                 </Border>
             </DockPanel>
@@ -22,7 +22,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -31,22 +31,22 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
                     <TextBlock Text="OUTSTANDING" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}">
+                    <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}">
                         <Run Text="{Binding CreditSummary.OutstandingBalance, Converter={StaticResource CurrencyFormat}}" />
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,16">
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,12">
                     <TextBlock Text="CREDIT LIMIT" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}">
                         <Run Text="{Binding CreditSummary.CreditLimit, Converter={StaticResource CurrencyFormat}}" />
                     </TextBlock>
                 </StackPanel>
 
                 <!-- Visualization -->
-                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,4,0,20">
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,2,0,14">
                     <ProgressBar Height="6" Background="{StaticResource SurfaceContainerBrush}" Foreground="{StaticResource ErrorBrush}" BorderThickness="0"
                                  Value="45" Minimum="0" Maximum="100" />
                     <!-- Visual value placeholder for progress -->

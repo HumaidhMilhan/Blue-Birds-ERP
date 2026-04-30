@@ -4,7 +4,7 @@
         Style="{StaticResource DialogWindowStyle}"
         Title="Create Walk-in Creditor" Width="480">
 
-    <Border Style="{StaticResource CardStyle}" Padding="24" CornerRadius="26">
+    <Border Style="{StaticResource CardStyle}" Padding="24" CornerRadius="12">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

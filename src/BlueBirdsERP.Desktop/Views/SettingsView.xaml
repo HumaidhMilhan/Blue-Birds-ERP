@@ -15,7 +15,7 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Control Style="{StaticResource LoadingSpinnerStyle}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,12,0" />
                     
-                    <Border Background="{StaticResource SuccessContainerBrush}" CornerRadius="22" Padding="16,8" 
+                    <Border Background="{StaticResource SuccessContainerBrush}" CornerRadius="12" Padding="16,8"
                             Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2z M10,17l-5-5l1.41-1.41L10,14.17l7.59-7.59L19,8L10,17z" 
@@ -24,7 +24,7 @@
                         </StackPanel>
                     </Border>
                     
-                    <Border Background="{StaticResource ErrorContainerBrush}" CornerRadius="22" Padding="16,8" 
+                    <Border Background="{StaticResource ErrorContainerBrush}" CornerRadius="12" Padding="16,8"
                             Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" Margin="12,0,0,0">
                         <StackPanel Orientation="Horizontal">
                             <Path Data="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10,10-4.48,10-10S17.52,2,12,2z M13,17h-2v-2h2V17z M13,13h-2V7h2V13z" 
