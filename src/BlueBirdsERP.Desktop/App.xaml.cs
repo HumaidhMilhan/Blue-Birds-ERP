@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using BlueBirdsERP.Desktop.Services;
 using BlueBirdsERP.Desktop.ViewModels;
@@ -56,17 +57,50 @@ public partial class App : System.Windows.Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        await _host.StartAsync();
+        var logPath = Path.Combine(AppContext.BaseDirectory, "crash.log");
 
-        // Ensure database tables exist
-        using (var scope = _host.Services.CreateScope())
+        // Global exception handlers to prevent silent crashes
+        DispatcherUnhandledException += (s, args) =>
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<PoultryProDbContext>();
-            await dbContext.Database.EnsureCreatedAsync();
-        }
+            var fullError = $"[UNHANDLED {DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{args.Exception}\n\nInner: {args.Exception.InnerException}";
+            System.Diagnostics.Debug.WriteLine(fullError);
+            File.AppendAllText(logPath, fullError + "\n\n");
+            MessageBox.Show(
+                $"An unexpected error occurred:\n\n{args.Exception.Message}\n\n{args.Exception.InnerException?.Message}",
+                "Application Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            args.Handled = true;
+        };
 
-        var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        {
+            var ex = args.ExceptionObject as Exception;
+            var fullError = $"[FATAL {DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{ex}";
+            System.Diagnostics.Debug.WriteLine(fullError);
+            File.AppendAllText(logPath, fullError + "\n\n");
+        };
+
+        try
+        {
+            await _host.StartAsync();
+
+            // Ensure database tables exist
+            using (var scope = _host.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<PoultryProDbContext>();
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            File.AppendAllText(logPath, $"[STARTUP ERROR {DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{ex}\n\n");
+            MessageBox.Show($"Startup failed:\n\n{ex.Message}\n\n{ex.InnerException?.Message}\n\nLog: {logPath}", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
+        }
 
         base.OnStartup(e);
     }

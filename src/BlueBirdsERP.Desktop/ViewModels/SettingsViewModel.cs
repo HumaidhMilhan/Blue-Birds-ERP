@@ -26,6 +26,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private string _receiptCompanyName = string.Empty;
     [ObservableProperty] private string _receiptHeader = string.Empty;
     [ObservableProperty] private string _receiptFooter = string.Empty;
+    [ObservableProperty] private string _systemLogoUrl = string.Empty;
 
     // User management
     [ObservableProperty] private ObservableCollection<CashierAccountResult> _cashiers = new();
@@ -34,11 +35,10 @@ public partial class SettingsViewModel : ViewModelBase
     // Database
     [ObservableProperty] private string _dbStatusMessage = string.Empty;
     [ObservableProperty] private string _backupPath = string.Empty;
-    [ObservableProperty] private OfflineSyncQueueStatusResult? _syncStatus;
 
     // Audit log
-    [ObservableProperty] private DateOnly _auditFromDate;
-    [ObservableProperty] private DateOnly _auditToDate;
+    [ObservableProperty] private DateTime _auditFromDate;
+    [ObservableProperty] private DateTime _auditToDate;
     [ObservableProperty] private ObservableCollection<AuditLogEntryResult> _auditLogs = new();
 
     // Notification templates
@@ -61,7 +61,7 @@ public partial class SettingsViewModel : ViewModelBase
         _notificationService = notificationService;
         _loginFacade = loginFacade;
 
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var today = DateTime.Today;
         _auditFromDate = today.AddDays(-30);
         _auditToDate = today;
     }
@@ -77,7 +77,6 @@ public partial class SettingsViewModel : ViewModelBase
         if (IsAdmin)
         {
             await LoadSystemSettingsAsync();
-            await LoadSyncStatusAsync();
         }
     }
 
@@ -98,6 +97,7 @@ public partial class SettingsViewModel : ViewModelBase
                     case "Receipt.CompanyName": ReceiptCompanyName = s.Value; break;
                     case "Receipt.Header": ReceiptHeader = s.Value; break;
                     case "Receipt.Footer": ReceiptFooter = s.Value; break;
+                    case "System.LogoUrl": SystemLogoUrl = s.Value; break;
                 }
             }
         }
@@ -257,18 +257,6 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    private async Task LoadSyncStatusAsync()
-    {
-        if (_loginFacade.CurrentUser is null) return;
-
-        try
-        {
-            SyncStatus = await _dbManagementService.GetSyncQueueStatusAsync(new AdminOperationRequest(
-                _loginFacade.CurrentUser.UserId, _loginFacade.CurrentUser.Role));
-        }
-        catch { /* silent */ }
-    }
-
     // Audit Log
     [RelayCommand]
     private async Task SearchAuditLogsAsync()
@@ -280,7 +268,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             var logs = await _auditLogReader.QueryAsync(new AuditLogQuery(
                 _loginFacade.CurrentUser.UserId, _loginFacade.CurrentUser.Role,
-                AuditFromDate, AuditToDate));
+                DateOnly.FromDateTime(AuditFromDate), DateOnly.FromDateTime(AuditToDate)));
 
             AuditLogs.Clear();
             foreach (var log in logs)

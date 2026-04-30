@@ -109,15 +109,15 @@ public partial class PosCheckoutViewModel : ViewModelBase
     {
         try
         {
-            var stockLevels = await _inventoryService.GetProductStockLevelsAsync();
-            if (stockLevels.Count == 0)
+            var catalog = await _inventoryService.GetProductCatalogAsync();
+            if (catalog.Count == 0)
             {
                 StatusMessage = "No products available. Add products in Inventory first.";
                 return;
             }
 
-            // Show product selection dialog
-            var productDialog = new ProductPickerDialog(stockLevels);
+            // Show product selection dialog (with prices)
+            var productDialog = new ProductPickerDialog(catalog);
             if (productDialog.ShowDialog() != true || productDialog.SelectedProduct == null)
                 return;
 
@@ -127,7 +127,7 @@ public partial class PosCheckoutViewModel : ViewModelBase
             var batchOptions = await _checkoutService.GetBatchPickerOptionsAsync(selectedProduct.ProductId);
             if (batchOptions.Count == 0)
             {
-                StatusMessage = $"No available batches for {selectedProduct.ProductName}.";
+                StatusMessage = $"No available batches for {selectedProduct.Name}.";
                 return;
             }
 
@@ -135,20 +135,13 @@ public partial class PosCheckoutViewModel : ViewModelBase
             if (batchDialog.ShowDialog() != true || batchDialog.SelectedBatch == null)
                 return;
 
-            // Prompt for selling price (product price not available from stock-level DTO)
-            var priceDialog = new PriceInputDialog(selectedProduct.ProductName, selectedProduct.UnitOfMeasure);
-            if (priceDialog.ShowDialog() != true || priceDialog.Price <= 0)
-            {
-                StatusMessage = "Price not provided. Item not added.";
-                return;
-            }
-            var unitPrice = priceDialog.Price;
+            var unitPrice = selectedProduct.SellingPrice;
 
             var lineItem = new LineItemViewModel
             {
                 ProductId = selectedProduct.ProductId,
                 BatchId = batchDialog.SelectedBatch.BatchId,
-                ProductName = selectedProduct.ProductName,
+                ProductName = selectedProduct.Name,
                 BatchReference = batchDialog.SelectedBatch.BatchReference,
                 UnitOfMeasure = selectedProduct.UnitOfMeasure,
                 Quantity = batchDialog.Quantity,
@@ -184,11 +177,37 @@ public partial class PosCheckoutViewModel : ViewModelBase
 
         try
         {
-            // Search by name or phone - get credit summary if found
-            // This is a simplified search - in a real app you'd have a proper search API
             StatusMessage = "Searching customers...";
-            // For now, we'll use a placeholder approach
-            StatusMessage = "Customer search requires a search API in the backend.";
+            var results = await _customerService.SearchCustomersAsync(CustomerSearchText);
+
+            if (results.Count == 0)
+            {
+                StatusMessage = "No customers found.";
+                return;
+            }
+
+            if (results.Count == 1)
+            {
+                var match = results[0];
+                SelectedCustomer = match;
+                HasCustomer = true;
+                CustomerSearchText = match.Name;
+
+                // Load credit summary
+                CreditSummary = await _customerService.GetCreditSummaryAsync(match.CustomerId);
+                StatusMessage = $"Customer: {match.Name}";
+            }
+            else
+            {
+                // Multiple matches — pick the first one and show count
+                var match = results[0];
+                SelectedCustomer = match;
+                HasCustomer = true;
+                CustomerSearchText = match.Name;
+
+                CreditSummary = await _customerService.GetCreditSummaryAsync(match.CustomerId);
+                StatusMessage = $"Found {results.Count} customers. Showing: {match.Name}";
+            }
         }
         catch (Exception ex)
         {
@@ -320,5 +339,3 @@ public partial class LineItemViewModel : ObservableObject
     partial void OnDiscountAmountChanged(decimal value) => OnPropertyChanged(nameof(LineTotal));
     partial void OnUnitPriceChanged(decimal value) => OnPropertyChanged(nameof(LineTotal));
 }
-
-public record CustomerSearchResult(Guid CustomerId, string Name, string Phone);

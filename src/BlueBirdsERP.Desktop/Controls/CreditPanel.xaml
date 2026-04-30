@@ -4,17 +4,25 @@
 
     <Border Style="{StaticResource CardStyle}"
             Visibility="{Binding CreditSummary, Converter={StaticResource BoolToVis}}"
-            Margin="0,8,0,0">
+            Padding="24"
+            Background="{StaticResource SurfaceElevatedBrush}"
+            Margin="0,16,0,0">
         <StackPanel>
-            <TextBlock Text="Credit Account"
-                       FontWeight="SemiBold"
-                       FontSize="14"
-                       Foreground="{StaticResource PrimaryBrush}"
-                       Margin="0,0,0,12" />
+            <DockPanel Margin="0,0,0,20">
+                <TextBlock Text="Customer Credit Profile"
+                           FontWeight="Bold"
+                           FontSize="16"
+                           Foreground="{StaticResource PrimaryBrush}"
+                           VerticalAlignment="Center" />
+                <Border DockPanel.Dock="Right" Background="{StaticResource PrimaryContainerBrush}" CornerRadius="16" Padding="10,4">
+                    <TextBlock Text="CREDIT ACTIVE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                </Border>
+            </DockPanel>
 
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -23,59 +31,42 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
-                    <TextBlock Text="Outstanding Balance" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}">
-                        <Run Text="{Binding CreditSummary.OutstandingBalance, StringFormat=Rs. {0:N2}}" />
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,16">
+                    <TextBlock Text="OUTSTANDING" Style="{StaticResource LabelStyle}" />
+                    <TextBlock FontSize="20" FontWeight="Bold" Foreground="{StaticResource ErrorBrush}">
+                        <Run Text="{Binding CreditSummary.OutstandingBalance, Converter={StaticResource CurrencyFormat}}" />
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
-                    <TextBlock Text="Credit Limit" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}">
-                        <Run Text="{Binding CreditSummary.CreditLimit, StringFormat=Rs. {0:N2}}" />
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,16">
+                    <TextBlock Text="CREDIT LIMIT" Style="{StaticResource LabelStyle}" />
+                    <TextBlock FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}">
+                        <Run Text="{Binding CreditSummary.CreditLimit, Converter={StaticResource CurrencyFormat}}" />
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,8">
-                    <TextBlock Text="Available Credit" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="16" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CreditSummary.IsLimitAlertActive}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                        <Run Text="{Binding CreditSummary.AvailableCredit, StringFormat=Rs. {0:N2}}" />
+                <!-- Visualization -->
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,4,0,20">
+                    <ProgressBar Height="6" Background="{StaticResource SurfaceContainerBrush}" Foreground="{StaticResource ErrorBrush}" BorderThickness="0"
+                                 Value="45" Minimum="0" Maximum="100" />
+                    <!-- Visual value placeholder for progress -->
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0">
+                    <TextBlock Text="AVAILABLE" Style="{StaticResource LabelStyle}" />
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}">
+                        <Run Text="{Binding CreditSummary.AvailableCredit, Converter={StaticResource CurrencyFormat}}" />
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
-                    <TextBlock Text="Overdue Invoices" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="16" FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CreditSummary.OverdueInvoiceCount}" Value="0">
-                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                        <Run Text="{Binding CreditSummary.OverdueInvoiceCount}" />
-                    </TextBlock>
-                </StackPanel>
-
-                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
-                    <TextBlock Text="Last Payment" Style="{StaticResource LabelStyle}" />
-                    <TextBlock FontSize="14">
-                        <Run Text="{Binding CreditSummary.LastPaymentDate, StringFormat='{}{0:yyyy-MM-dd}', FallbackValue='No payments'}" />
-                    </TextBlock>
+                <StackPanel Grid.Row="2" Grid.Column="2">
+                    <TextBlock Text="OVERDUE" Style="{StaticResource LabelStyle}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource OnSurfaceBrush}">
+                            <Run Text="{Binding CreditSummary.OverdueInvoiceCount}" />
+                        </TextBlock>
+                        <TextBlock Text=" Invoices" FontSize="14" Foreground="{StaticResource OnSurfaceVariantBrush}" VerticalAlignment="Bottom" Margin="4,0,0,1" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </StackPanel>

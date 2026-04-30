@@ -1,0 +1,93 @@
+<Window x:Class="BlueBirdsERP.Desktop.Controls.CreateBusinessAccountDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Style="{StaticResource DialogWindowStyle}"
+        Title="Add Credit Customer" Width="600">
+
+    <Border Background="{StaticResource SurfaceContainerLowestBrush}"
+            BorderBrush="{StaticResource OutlineBrush}"
+            BorderThickness="1"
+            CornerRadius="26"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Background="{StaticResource FieldBrush}"
+                    BorderBrush="{StaticResource OutlineVariantBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="24,20">
+                <TextBlock Text="Add Credit Customer" Style="{StaticResource SectionHeaderStyle}" Margin="0" />
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="450" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="BUSINESS NAME" Style="{StaticResource LabelStyle}" />
+                    <TextBox x:Name="NameBox" Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,16" />
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="PHONE" Style="{StaticResource LabelStyle}" />
+                            <TextBox x:Name="PhoneBox" Style="{StaticResource InputTextBoxStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="WHATSAPP" Style="{StaticResource LabelStyle}" />
+                            <TextBox x:Name="WhatsAppBox" Style="{StaticResource InputTextBoxStyle}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="EMAIL ADDRESS" Style="{StaticResource LabelStyle}" />
+                    <TextBox x:Name="EmailBox" Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,16" />
+
+                    <TextBlock Text="OFFICE ADDRESS" Style="{StaticResource LabelStyle}" />
+                    <TextBox x:Name="AddressBox" Style="{StaticResource InputTextBoxStyle}" Height="80" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,24" />
+
+                    <Separator Style="{StaticResource SeparatorStyle}" Margin="0,0,0,24" />
+                    
+                    <TextBlock Text="CREDIT LIMIT (RS.)" Style="{StaticResource LabelStyle}" />
+                    <TextBox x:Name="CreditLimitBox" Style="{StaticResource InputTextBoxStyle}" Margin="0,0,0,16" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="CREDIT PERIOD (DAYS)" Style="{StaticResource LabelStyle}" />
+                            <TextBox x:Name="CreditPeriodBox" Style="{StaticResource InputTextBoxStyle}" Text="30" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="NOTIFY LEAD (DAYS)" Style="{StaticResource LabelStyle}" />
+                            <TextBox x:Name="NotificationLeadBox" Style="{StaticResource InputTextBoxStyle}" Text="3" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Border Grid.Row="2"
+                    Background="{StaticResource SurfaceContainerBrush}"
+                    BorderBrush="{StaticResource OutlineVariantBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="16">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Margin="0,0,12,0"
+                            Click="Cancel_Click" />
+                    <Button Content="Create Account"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="Create_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

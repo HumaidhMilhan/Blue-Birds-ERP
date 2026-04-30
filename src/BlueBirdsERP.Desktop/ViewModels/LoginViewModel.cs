@@ -16,6 +16,10 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty] private bool _hasError;
     [ObservableProperty] private bool _hasBootstrapMessage;
 
+    [ObservableProperty] private string _systemLogoUrl = string.Empty;
+    [ObservableProperty] private string _lastLoginUsername = "Admin";
+    [ObservableProperty] private string _lastLoginTime = "2024-05-01 08:30 AM";
+
     public Action<LoginResult>? LoginSucceeded { get; set; }
 
     public LoginViewModel(

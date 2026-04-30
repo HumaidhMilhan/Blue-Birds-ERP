@@ -3,101 +3,134 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:BlueBirdsERP.Desktop.ViewModels">
 
-    <Border Background="{StaticResource SurfaceContainerLowBrush}"
-            BorderBrush="{StaticResource OutlineVariantBrush}"
-            BorderThickness="0,0,1,0">
-        <DockPanel>
-            <!-- Branding / Collapse toggle -->
-            <StackPanel DockPanel.Dock="Top" Margin="16,20,16,24">
-                <Grid>
-                    <Ellipse Width="40" Height="40"
-                             Fill="{StaticResource PrimaryBrush}"
-                             HorizontalAlignment="Left"
-                             Margin="0,0,0,12">
-                        <Ellipse.OpacityMask>
-                            <SolidColorBrush Color="White" />
-                        </Ellipse.OpacityMask>
-                    </Ellipse>
-                    <!-- App name when expanded -->
-                    <TextBlock Text="PoultryPro"
-                               Foreground="{StaticResource PrimaryBrush}"
-                               FontSize="15"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Margin="48,0,0,12"
-                               Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
-                </Grid>
-                <TextBlock Text="MENU"
-                           Foreground="{StaticResource OnSurfaceVariantBrush}"
-                           FontSize="11"
+    <Border Background="{StaticResource SidebarSurfaceBrush}"
+            Padding="12,18">
+        <DockPanel LastChildFill="True">
+            <StackPanel DockPanel.Dock="Top"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,18">
+                <Border Width="64"
+                        Height="64"
+                        Background="{StaticResource HeroGradientBrush}"
+                        CornerRadius="26">
+                    <Grid>
+                        <Path Data="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"
+                              Fill="{StaticResource PrimaryBrush}"
+                              Width="25"
+                              Height="30"
+                              Stretch="Uniform"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="BlueBirds"
+                           FontSize="12"
                            FontWeight="SemiBold"
-                           Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+                           Foreground="{StaticResource OnSurfaceBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0" />
             </StackPanel>
 
-            <!-- Collapse toggle button at bottom -->
-            <Button DockPanel.Dock="Bottom"
-                    Margin="12,0,12,12"
-                    Padding="8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    Command="{Binding ToggleSidebarCommand}"
-                    Style="{StaticResource GhostButtonStyle}"
-                    FontSize="12"
-                    Content="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVis}, ConverterParameter=Invert, FallbackValue=''}">
-                <Button.ContentTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="&#x25C0; Collapse" />
-                    </DataTemplate>
-                </Button.ContentTemplate>
-            </Button>
+            <StackPanel DockPanel.Dock="Bottom"
+                        HorizontalAlignment="Center"
+                        Margin="0,18,0,0">
+                <Button Style="{StaticResource GhostButtonStyle}"
+                        Width="72"
+                        Height="64"
+                        MinHeight="64"
+                        Padding="0"
+                        ToolTip="Help">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Width="44"
+                                Height="34"
+                                CornerRadius="17"
+                                Background="{StaticResource ButterPastelBrush}">
+                            <Path Data="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,6A3,3 0 0,0 9,9H11A1,1 0 0,1 12,8A1,1 0 0,1 13,9C13,11 10,10.75 10,14H12C12,11.75 15,11.5 15,9A3,3 0 0,0 12,6Z"
+                                  Fill="{StaticResource WarningBrush}"
+                                  Width="18"
+                                  Height="18"
+                                  Stretch="Uniform"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="Help"
+                                   FontSize="11"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
 
-            <!-- Navigation items -->
             <ListBox ItemsSource="{Binding NavigationItems}"
                      SelectedItem="{Binding SelectedNavigationItem}"
                      Background="Transparent"
                      BorderThickness="0"
-                     Padding="0,8"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                     Padding="0,4"
+                     HorizontalContentAlignment="Center"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:NavigationItem}">
-                        <StackPanel Orientation="Horizontal" Margin="4,0">
-                            <Path Data="{Binding IconPathData}"
-                                  Fill="currentColor"
-                                  Width="20" Height="20"
-                                  Stretch="Uniform"
-                                  Margin="0,0,12,0"
-                                  VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding Label}"
-                                       FontSize="14"
-                                       VerticalAlignment="Center"
-                                       Visibility="{Binding DataContext.IsSidebarCollapsed, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+                        <StackPanel Width="78" ToolTip="{Binding Label}">
+                            <Border x:Name="IconPill"
+                                    Width="60"
+                                    Height="38"
+                                    CornerRadius="19"
+                                    Background="Transparent"
+                                    HorizontalAlignment="Center">
+                                <Path x:Name="Icon"
+                                      Data="{Binding IconPathData}"
+                                      Fill="{StaticResource OnSurfaceVariantBrush}"
+                                      Width="20"
+                                      Height="20"
+                                      Stretch="Uniform"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock x:Name="LabelText"
+                                       Text="{Binding Label}"
+                                       FontSize="10.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxHeight="32"
+                                       Margin="0,5,0,0" />
                         </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                <Setter TargetName="IconPill" Property="Background" Value="{StaticResource PrimaryContainerBrush}" />
+                                <Setter TargetName="Icon" Property="Fill" Value="{StaticResource OnPrimaryContainerBrush}" />
+                                <Setter TargetName="LabelText" Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="Background" Value="Transparent" />
                         <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="0,1" />
+                        <Setter Property="Margin" Value="0,4" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
-                                    <Border x:Name="border"
+                                    <Border x:Name="ItemSurface"
                                             Background="Transparent"
-                                            CornerRadius="4"
-                                            Padding="16,12"
-                                            Margin="8,2"
+                                            CornerRadius="26"
+                                            Padding="0,8"
                                             SnapsToDevicePixels="True">
-                                        <ContentPresenter />
+                                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="border" Property="Background" Value="{StaticResource SurfaceContainerBrush}" />
+                                            <Setter TargetName="ItemSurface" Property="Background" Value="{StaticResource SurfaceHoverBrush}" />
                                         </Trigger>
                                         <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="border" Property="Background" Value="{StaticResource SurfaceContainerHighBrush}" />
-                                            <Setter TargetName="border" Property="BorderThickness" Value="2,0,0,0" />
-                                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                            <Setter TargetName="ItemSurface" Property="Background" Value="{StaticResource SurfaceContainerLowestBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

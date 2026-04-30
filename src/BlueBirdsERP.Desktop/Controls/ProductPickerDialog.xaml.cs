@@ -7,9 +7,9 @@ namespace BlueBirdsERP.Desktop.Controls;
 
 public partial class ProductPickerDialog : Window
 {
-    public ProductStockLevel? SelectedProduct { get; private set; }
+    public ProductCatalogItem? SelectedProduct { get; private set; }
 
-    public ProductPickerDialog(IReadOnlyList<ProductStockLevel> products)
+    public ProductPickerDialog(IReadOnlyList<ProductCatalogItem> products)
     {
         InitializeComponent();
         DataContext = new ProductPickerViewModel(products);
@@ -36,14 +36,14 @@ public partial class ProductPickerDialog : Window
 
 public partial class ProductPickerViewModel : ObservableObject
 {
-    private readonly IReadOnlyList<ProductStockLevel> _allProducts;
+    private readonly IReadOnlyList<ProductCatalogItem> _allProducts;
 
-    public ObservableCollection<ProductStockLevel> FilteredProducts { get; } = new();
+    public ObservableCollection<ProductCatalogItem> FilteredProducts { get; } = new();
 
     [ObservableProperty] private string _searchText = string.Empty;
-    [ObservableProperty] private ProductStockLevel? _selectedProduct;
+    [ObservableProperty] private ProductCatalogItem? _selectedProduct;
 
-    public ProductPickerViewModel(IReadOnlyList<ProductStockLevel> products)
+    public ProductPickerViewModel(IReadOnlyList<ProductCatalogItem> products)
     {
         _allProducts = products;
         foreach (var p in products)
@@ -55,7 +55,7 @@ public partial class ProductPickerViewModel : ObservableObject
         FilteredProducts.Clear();
         var filtered = string.IsNullOrWhiteSpace(value)
             ? _allProducts
-            : _allProducts.Where(p => p.ProductName.Contains(value, StringComparison.OrdinalIgnoreCase)).ToList();
+            : _allProducts.Where(p => p.Name.Contains(value, StringComparison.OrdinalIgnoreCase)).ToList();
         foreach (var p in filtered)
             FilteredProducts.Add(p);
     }

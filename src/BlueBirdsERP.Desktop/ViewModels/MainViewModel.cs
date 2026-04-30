@@ -16,9 +16,7 @@ public partial class MainViewModel : ViewModelBase
     private readonly ILoginSessionFacade _loginFacade;
     private readonly ISessionService _sessionService;
     private readonly IRbacAuthorizationService _rbacService;
-    private readonly DispatcherTimer _sessionTimer;
     private readonly DispatcherTimer _clockTimer;
-    private DateTime _lastActivity;
     private AuthenticatedUser? _currentUser;
 
     [ObservableProperty] private ObservableObject? _currentView;
@@ -57,10 +55,6 @@ public partial class MainViewModel : ViewModelBase
             CurrentView = _navigationService.CurrentView;
         };
 
-        // Session timeout timer (1-min tick, 15-min timeout)
-        _sessionTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
-        _sessionTimer.Tick += SessionTimerTick;
-
         // Clock timer (1-sec tick)
         _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _clockTimer.Tick += (s, e) => CurrentDateTime = DateTime.Now.ToString("ddd, MMM dd yyyy  •  HH:mm:ss");
@@ -86,7 +80,6 @@ public partial class MainViewModel : ViewModelBase
         CurrentPageTitle = string.Empty;
         _currentUser = null;
         NavigationItems.Clear();
-        _sessionTimer.Stop();
 
         var loginVm = _serviceProvider.GetRequiredService<LoginViewModel>();
         loginVm.LoginSucceeded = OnLoginSucceeded;
@@ -101,8 +94,6 @@ public partial class MainViewModel : ViewModelBase
         CurrentRole = result.User.Role.ToString();
 
         await _sessionService.BeginSessionAsync(result.User);
-        _lastActivity = DateTime.UtcNow;
-        _sessionTimer.Start();
 
         BuildNavigationItems(result.Permissions);
 
@@ -122,7 +113,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "POS Billing",
-                "M10,2H3V22H10V14H14V22H21V2H14V10H10V2Z",
+                "M 17 6V4H7V6H17M 19 16V8H5V16H19M 19 18H5C3.9 18 3 17.1 3 16V8C3 6.9 3.9 6 5 6V4C5 2.9 5.9 2 7 2H17C18.1 2 19 2.9 19 4V6C20.1 6 21 6.9 21 8V16C21 17.1 20.1 18 19 18M 11 11H7V13H11V11M 17 11H13V13H17V11Z",
                 PagePos,
                 RbacPermission.PosBilling,
                 NavigateToPos));
@@ -133,7 +124,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "Dashboard",
-                "M3,3V21H21V19H5V3H3M14,7A2,2 0 0,1 16,9A2,2 0 0,1 14,11A2,2 0 0,1 12,9A2,2 0 0,1 14,7M14,13C17.31,13 20,14.79 20,17V19H8V17C8,14.79 10.69,13 14,13M14,15C11.79,15 10,15.9 10,17V18H18V17C18,15.9 16.21,15 14,15Z",
+                "M4,4H10V12H4V4M4,14H10V20H4V14M14,4H20V10H14V4M14,12H20V20H14V12M6,6V10H8V6H6M6,16V18H8V16H6M16,6V8H18V6H16M16,14V18H18V14H16Z",
                 PageDashboard,
                 RbacPermission.Reporting,
                 NavigateToDashboard));
@@ -145,7 +136,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "Creditors",
-                "M16,13C14.69,13 13.38,13.28 12.27,13.85C11.34,13.34 10.25,13.07 9.07,13.07C6.13,13.07 3.5,14.95 2.28,17.71L1,16.07C2.5,12.73 5.5,10.5 9.07,10.5C10.55,10.5 11.92,10.87 13.09,11.5C13.84,10.63 14.87,10.06 16,10.06C18.34,10.06 20.24,11.96 20.24,14.3C20.24,14.53 20.22,14.76 20.18,14.97C20.78,14.37 21.5,13.89 22.31,13.59L23,16.07C21.82,16.55 20.82,17.32 20.1,18.28C21.14,18.78 22,19.59 22.57,20.59L21.15,21.5C20.22,19.87 18.36,18.78 16.24,18.78C14.9,18.78 13.67,19.13 12.6,19.72L11.4,17.69C12.58,17.19 13.9,16.89 15.3,16.89C17.64,16.89 19.65,18.24 20.64,20.19C19.85,20.72 18.83,21 17.7,21C15.2,21 13.13,19.28 12.5,17H10.5C10.5,17 10.5,17 10.5,17C11.13,19.28 9.06,21 6.56,21C4.06,21 2,19.28 2,17C2,14.72 4.06,13 6.56,13H16Z",
+                "M16,11C17.66,11 18.99,9.66 18.99,8C18.99,6.34 17.66,5 16,5C14.34,5 13,6.34 13,8C13,9.66 14.34,11 16,11M16,7C16.55,7 17,7.45 17,8C17,8.55 16.55,9 16,9C15.45,9 15,8.55 15,8C15,7.45 15.45,7 16,7M8,11C9.66,11 10.99,9.66 10.99,8C10.99,6.34 9.66,5 8,5C6.34,5 5,6.34 5,8C5,9.66 6.34,11 8,11M8,7C8.55,7 9,7.45 9,8C9,8.55 8.55,9 8,9C7.45,9 7,8.55 7,8C7,7.45 7.45,7 8,7M16,13C13.67,13 9,14.17 9,16.5V19H23V16.5C23,14.17 18.33,13 16,13M11.24,17H20.76V16.5C20.76,15.91 18.23,15 16,15C13.77,15 11.24,15.91 11.24,16.5V17M8,13C7.53,13 7.03,13.06 6.55,13.17C5.02,13.56 3,14.54 3,16.5V19H7V17H5.24V16.5C5.24,15.54 6.78,14.56 8.35,14.17C8.25,13.8 8.16,13.4 8,13Z",
                 PageCreditors,
                 RbacPermission.CustomerAccountManagement,
                 NavigateToCreditors));
@@ -156,7 +147,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "Analytics",
-                "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z",
+                "M 16,11.78L 20.24,4.45L 21.97,5.45L 16.74,14.5L 10.23,10.75L 5.46,19H 22V 21H 2V 3H 4V 17.54L 9.5,8L 16,11.78Z",
                 PageAnalytics,
                 RbacPermission.Reporting,
                 NavigateToAnalytics));
@@ -168,7 +159,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "Inventory",
-                "M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,17H7V7H17V17Z",
+                "M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09L12,12.03L19,8.09L12,4.15M5,15.91L11,19.85V13.18L5,9.24V15.91M19,15.91V9.24L13,13.18V19.85L19,15.91Z",
                 PageInventory,
                 RbacPermission.InventoryManagement,
                 NavigateToInventory));
@@ -179,7 +170,7 @@ public partial class MainViewModel : ViewModelBase
         {
             NavigationItems.Add(new NavigationItem(
                 "Settings",
-                "M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z",
+                "M19.14,12.94C19.3,12.61 19.3,12.3 19.3,12C19.3,11.7 19.3,11.39 19.14,11.06L21.25,9.41C21.44,9.26 21.5,8.97 21.36,8.74L19.36,5.28C19.24,5.04 18.96,4.95 18.72,5.04L16.23,6.04C15.71,5.65 15.17,5.31 14.54,5.06L14.17,2.41C14.13,2.17 13.92,2 13.67,2H9.67C9.42,2 9.21,2.17 9.17,2.41L8.8,5.06C8.17,5.31 7.63,5.65 7.11,6.04L4.62,5.04C4.38,4.95 4.1,5.04 3.98,5.28L1.98,8.74C1.84,8.97 1.9,9.26 2.09,9.41L4.2,11.06C4.04,11.39 4.04,11.7 4.04,12C4.04,12.3 4.04,12.61 4.2,12.94L2.09,14.59C1.9,14.74 1.84,15.03 1.98,15.26L3.98,18.72C4.1,18.96 4.38,19.05 4.62,18.96L7.11,17.96C7.63,18.35 8.17,18.69 8.8,18.94L9.17,21.59C9.21,21.83 9.42,22 9.67,22H13.67C13.92,22 14.13,21.83 14.17,21.59L14.54,18.94C15.17,18.69 15.71,18.35 16.23,17.96L18.72,18.96C18.96,19.05 19.24,18.96 19.36,18.72L21.36,15.26C21.5,15.03 21.44,14.74 21.25,14.59L19.14,12.94M12,15.5C10.07,15.5 8.5,13.93 8.5,12C8.5,10.07 10.07,8.5 12,8.5C13.93,8.5 15.5,10.07 15.5,12C15.5,13.93 13.93,15.5 12,15.5M12,10.5C11.17,10.5 10.5,11.17 10.5,12C10.5,12.83 11.17,13.5 12,13.5C12.83,13.5 13.5,12.83 13.5,12C13.5,11.17 12.83,10.5 12,10.5Z",
                 PageSettings,
                 RbacPermission.SystemConfiguration,
                 NavigateToSettings));
@@ -192,7 +183,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<PosCheckoutViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "POS Billing";
-        Touch();
     }
 
     [RelayCommand]
@@ -201,7 +191,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<DashboardViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "Dashboard";
-        Touch();
     }
 
     [RelayCommand]
@@ -210,7 +199,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<CreditorsViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "Creditors";
-        Touch();
     }
 
     [RelayCommand]
@@ -219,7 +207,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<AnalyticsViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "Analytics";
-        Touch();
     }
 
     [RelayCommand]
@@ -228,7 +215,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<InventoryViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "Inventory";
-        Touch();
     }
 
     [RelayCommand]
@@ -237,7 +223,6 @@ public partial class MainViewModel : ViewModelBase
         var vm = _serviceProvider.GetRequiredService<SettingsViewModel>();
         _navigationService.NavigateTo(vm);
         CurrentPageTitle = "Settings";
-        Touch();
     }
 
     [RelayCommand]
@@ -249,27 +234,7 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private async Task LogoutAsync()
     {
-        _sessionTimer.Stop();
         await _loginFacade.LogoutAsync();
         ShowLogin();
-    }
-
-    public void Touch()
-    {
-        _lastActivity = DateTime.UtcNow;
-        _sessionService.TouchAsync();
-    }
-
-    private async void SessionTimerTick(object? sender, EventArgs e)
-    {
-        if (!IsLoggedIn) return;
-
-        var inactiveTime = DateTime.UtcNow - _lastActivity;
-        if (inactiveTime >= _sessionService.InactivityTimeout)
-        {
-            _sessionTimer.Stop();
-            await _sessionService.EndSessionAsync();
-            ShowLogin();
-        }
     }
 }
